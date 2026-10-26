@@ -140,8 +140,15 @@
 }
 
 /* Clases de apoyo */
-.font-mono { font-family: monospace; color: #6b7280; font-size: 0.85rem; }
-.font-medium { font-weight: 600; color: #111827; }
+.font-mono {
+  font-family: monospace;
+  color: #6b7280;
+  font-size: 0.85rem;
+}
+.font-medium {
+  font-weight: 600;
+  color: #111827;
+}
 
 /* Badges con punto indicador */
 .badge {
@@ -162,20 +169,45 @@
   border-radius: 50%;
 }
 
-.badge.success { background-color: #ecfdf5; color: #065f46; }
-.badge.success .dot { background-color: #10b981; }
+.badge.success {
+  background-color: #ecfdf5;
+  color: #065f46;
+}
+.badge.success .dot {
+  background-color: #10b981;
+}
 
-.badge.warning { background-color: #fffbeb; color: #92400e; }
-.badge.warning .dot { background-color: #f59e0b; }
+.badge.warning {
+  background-color: #fffbeb;
+  color: #92400e;
+}
+.badge.warning .dot {
+  background-color: #f59e0b;
+}
 
-.badge.info { background-color: #eff6ff; color: #1e40af; }
-.badge.info .dot { background-color: #3b82f6; }
+.badge.info {
+  background-color: #eff6ff;
+  color: #1e40af;
+}
+.badge.info .dot {
+  background-color: #3b82f6;
+}
 
-.badge.purple { background-color: #f5f3ff; color: #5b21b6; }
-.badge.purple .dot { background-color: #8b5cf6; }
+.badge.purple {
+  background-color: #f5f3ff;
+  color: #5b21b6;
+}
+.badge.purple .dot {
+  background-color: #8b5cf6;
+}
 
-.badge.danger { background-color: #fef2f2; color: #991b1b; }
-.badge.danger .dot { background-color: #ef4444; }
+.badge.danger {
+  background-color: #fef2f2;
+  color: #991b1b;
+}
+.badge.danger .dot {
+  background-color: #ef4444;
+}
 
 /* Botón Cambiar Estado centrado */
 .btn-action {

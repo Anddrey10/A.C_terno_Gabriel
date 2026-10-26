@@ -1,13 +1,15 @@
-<!DOCTYPE html>
+<!doctype html>
 <html xmlns:th="http://www.thymeleaf.org">
-<body>
-<div class="toast" id="toast" hidden th:fragment="toast(message)">
-    <i>✓</i>
-    <div>
+  <body>
+    <div class="toast" id="toast" hidden th:fragment="toast(message)">
+      <i>✓</i>
+      <div>
         <strong>Operación exitosa</strong>
         <span id="toastMessage" th:text="${message}">Cambios guardados</span>
+      </div>
+      <button class="toast-close" type="button" aria-label="Cerrar aviso">
+        ×
+      </button>
     </div>
-    <button class="toast-close" type="button" aria-label="Cerrar aviso">×</button>
-</div>
-</body>
+  </body>
 </html>

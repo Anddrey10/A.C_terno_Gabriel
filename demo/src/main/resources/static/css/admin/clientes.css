@@ -1,7 +1,7 @@
-/* Estilos específicos de Clientes. */
+/* Estilos específicos de Clientes */
 .page-admin-clientes .content { }
 
-/* Contenedor de registro de clientes: igual al de empleados */
+/* Contenedor de registro de clientes */
 .page-admin-clientes .status-badge {
     padding: 6px 12px;
     border-radius: 20px;

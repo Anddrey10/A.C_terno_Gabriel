@@ -1,3 +1,0 @@
-# Copia este archivo como application-local.properties (no se sube a GitHub) y escribe tus datos.
-spring.datasource.username=root
-spring.datasource.password=TU_CONTRASENA_DE_MYSQL

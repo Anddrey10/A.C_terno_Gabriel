@@ -243,13 +243,13 @@
 }
 .page-empleado-anular-boleta .cancel-summary span {
   color: #777064;
-  font-size: .76rem;
-  letter-spacing: .02em;
+  font-size: 0.76rem;
+  letter-spacing: 0.02em;
   text-transform: none;
 }
 .page-empleado-anular-boleta .cancel-summary b {
   color: #211d17;
-  font-size: .98rem;
+  font-size: 0.98rem;
   line-height: 1.35;
   font-weight: 750;
 }
@@ -270,74 +270,85 @@
   border-color: #b89a5a;
 }
 @media (max-width: 768px) {
-  .page-empleado-anular-boleta .cancel-summary { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .page-empleado-anular-boleta .cancel-summary {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 @media (max-width: 480px) {
-  .page-empleado-anular-boleta .search-row { align-items: stretch; flex-direction: column; }
-  .page-empleado-anular-boleta .cancel-summary { grid-template-columns: 1fr; }
-  .page-empleado-anular-boleta .cancel-summary > div { min-height: auto; }
+  .page-empleado-anular-boleta .search-row {
+    align-items: stretch;
+    flex-direction: column;
+  }
+  .page-empleado-anular-boleta .cancel-summary {
+    grid-template-columns: 1fr;
+  }
+  .page-empleado-anular-boleta .cancel-summary > div {
+    min-height: auto;
+  }
 }
-
 
 /* La ficha de anulación usa el mismo lenguaje visual que las tarjetas de Confección. */
 .page-empleado-anular-boleta .cancel-summary {
-  display:grid;
-  grid-template-columns:repeat(3,minmax(0,1fr));
-  gap:12px;
-  padding:0;
-  background:transparent;
-  border:0;
-  border-radius:0;
-  align-items:stretch;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  padding: 0;
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  align-items: stretch;
 }
 .page-empleado-anular-boleta .cancel-summary > div {
-  display:flex;
-  flex-direction:column;
-  align-items:flex-start;
-  justify-content:center;
-  gap:5px;
-  min-width:0;
-  min-height:78px;
-  padding:14px 16px;
-  margin:0;
-  border:1px solid #e4d7bb;
-  border-radius:12px;
-  background:#fbf7ee;
-  overflow-wrap:anywhere;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 5px;
+  min-width: 0;
+  min-height: 78px;
+  padding: 14px 16px;
+  margin: 0;
+  border: 1px solid #e4d7bb;
+  border-radius: 12px;
+  background: #fbf7ee;
+  overflow-wrap: anywhere;
 }
 .page-empleado-anular-boleta .cancel-summary span {
-  color:#777064;
-  font-size:11px;
-  font-weight:600;
-  letter-spacing:0;
-  text-transform:none;
-  line-height:1.2;
+  color: #777064;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0;
+  text-transform: none;
+  line-height: 1.2;
 }
 .page-empleado-anular-boleta .cancel-summary b {
-  color:#211d17;
-  font-size:15px;
-  font-weight:750;
-  line-height:1.35;
+  color: #211d17;
+  font-size: 15px;
+  font-weight: 750;
+  line-height: 1.35;
 }
 .page-empleado-anular-boleta .search-row input,
 .page-empleado-anular-boleta textarea {
-  border:1px solid #e4d7bb;
-  border-radius:8px;
-  background:#fffdf8;
+  border: 1px solid #e4d7bb;
+  border-radius: 8px;
+  background: #fffdf8;
 }
 .page-empleado-anular-boleta .not-found-box {
-  border:1px solid #e4d7bb;
-  border-radius:12px;
-  background:#fbf7ee;
-  color:#6d6250;
+  border: 1px solid #e4d7bb;
+  border-radius: 12px;
+  background: #fbf7ee;
+  color: #6d6250;
 }
-@media (max-width:768px) {
-  .page-empleado-anular-boleta .cancel-summary { grid-template-columns:repeat(2,minmax(0,1fr)); }
+@media (max-width: 768px) {
+  .page-empleado-anular-boleta .cancel-summary {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
-@media (max-width:480px) {
-  .page-empleado-anular-boleta .cancel-summary { grid-template-columns:1fr; }
+@media (max-width: 480px) {
+  .page-empleado-anular-boleta .cancel-summary {
+    grid-template-columns: 1fr;
+  }
 }
-
 
 /* Ficha compacta de boleta: distribución horizontal inspirada en la referencia */
 .page-empleado-anular-boleta .cancel-summary {
@@ -351,7 +362,7 @@
   background: #fbf7ee;
   border: 1px solid #e7d7b6;
   border-radius: 13px;
-  box-shadow: 0 3px 10px rgba(89, 65, 23, .04);
+  box-shadow: 0 3px 10px rgba(89, 65, 23, 0.04);
 }
 .page-empleado-anular-boleta .cancel-summary > div {
   display: flex;
@@ -381,7 +392,7 @@
   color: #776b58;
   font-size: 11px;
   font-weight: 500;
-  letter-spacing: .01em;
+  letter-spacing: 0.01em;
   line-height: 1.2;
   text-transform: none;
 }
@@ -400,7 +411,7 @@
     border-bottom: 1px solid #eee4d2;
     padding: 10px 8px;
   }
-  .page-empleado-anular-boleta .cancel-summary > div:nth-last-child(-n+3) {
+  .page-empleado-anular-boleta .cancel-summary > div:nth-last-child(-n + 3) {
     border-bottom: 0;
   }
 }
@@ -419,7 +430,7 @@
   .page-empleado-anular-boleta .cancel-summary > div:nth-child(odd) {
     border-right: 1px solid #eee4d2;
   }
-  .page-empleado-anular-boleta .cancel-summary > div:nth-last-child(-n+2) {
+  .page-empleado-anular-boleta .cancel-summary > div:nth-last-child(-n + 2) {
     border-bottom: 0;
   }
 }
@@ -439,7 +450,6 @@
   }
 }
 
-
 /* Ficha de resultado: una sola tarjeta horizontal, sin divisores internos. */
 .page-empleado-anular-boleta .cancel-summary {
   display: grid;
@@ -453,7 +463,7 @@
   background: #fbf7ee;
   border: 1px solid #e7d7b6;
   border-radius: 13px;
-  box-shadow: 0 2px 8px rgba(89, 65, 23, .04);
+  box-shadow: 0 2px 8px rgba(89, 65, 23, 0.04);
 }
 .page-empleado-anular-boleta .cancel-summary > div {
   display: flex;
@@ -517,28 +527,124 @@
     gap: 12px;
     padding: 14px;
   }
-  .page-empleado-anular-boleta .cancel-summary > .cancel-client { grid-column: span 2; }
+  .page-empleado-anular-boleta .cancel-summary > .cancel-client {
+    grid-column: span 2;
+  }
 }
 @media (max-width: 700px) {
   .page-empleado-anular-boleta .cancel-summary {
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 16px 10px;
   }
-  .page-empleado-anular-boleta .cancel-summary > .cancel-client { grid-column: 1 / -1; }
-  .page-empleado-anular-boleta .cancel-summary > div { align-items: flex-start; text-align: left; }
+  .page-empleado-anular-boleta .cancel-summary > .cancel-client {
+    grid-column: 1 / -1;
+  }
+  .page-empleado-anular-boleta .cancel-summary > div {
+    align-items: flex-start;
+    text-align: left;
+  }
 }
 
-
 /* Resultado con apariencia de comprobante real */
-.cancel-summary{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:0;margin-top:22px;padding:20px;background:#fffdf7;border:1px solid #d8c59e;border-radius:14px;box-shadow:0 5px 18px #3e2d120a;overflow:hidden;position:relative}
-.cancel-summary:before{content:"COMPROBANTE DE OPERACIÓN";grid-column:1/-1;padding:0 0 14px;margin-bottom:4px;border-bottom:1px dashed #cbb88f;color:#8a7042;font-size:11px;font-weight:800;letter-spacing:.12em}
-.cancel-summary>div{min-width:0;padding:13px 14px;border-bottom:1px solid #eee5d3}
-.cancel-summary>div:nth-child(3n+2){padding-left:0}
-.cancel-summary>div span{display:block;margin-bottom:6px;color:#85775e;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.055em}
-.cancel-summary>div b{display:block;color:#342f27;font-size:14px;font-weight:700;line-height:1.45;overflow-wrap:anywhere}
-.cancel-summary .cancel-client{grid-column:1/-1;display:flex;align-items:center;gap:13px;padding:5px 0 17px;border-bottom:1px dashed #cbb88f}
-.cancel-summary .cancel-client-text span{margin-bottom:4px}
-.cancel-summary .cancel-client-text b{font-size:18px}
-.cancel-summary .cancel-avatar{display:flex;align-items:center;justify-content:center;flex:0 0 48px;width:48px;height:48px;border-radius:50%;background:#efe2c5;color:#755b2e;font-weight:800}
-@media(max-width:650px){.cancel-summary{grid-template-columns:repeat(2,minmax(0,1fr));padding:14px}.cancel-summary>div{padding:11px 8px}.cancel-summary>div:nth-child(3n+2){padding-left:8px}.cancel-summary .cancel-client{grid-column:1/-1}}
-@media(max-width:390px){.cancel-summary{grid-template-columns:1fr}.cancel-summary:before,.cancel-summary .cancel-client{grid-column:1}.cancel-summary>div{padding-left:0!important}}
+.cancel-summary {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0;
+  margin-top: 22px;
+  padding: 20px;
+  background: #fffdf7;
+  border: 1px solid #d8c59e;
+  border-radius: 14px;
+  box-shadow: 0 5px 18px #3e2d120a;
+  overflow: hidden;
+  position: relative;
+}
+.cancel-summary:before {
+  content: "COMPROBANTE DE OPERACIÓN";
+  grid-column: 1/-1;
+  padding: 0 0 14px;
+  margin-bottom: 4px;
+  border-bottom: 1px dashed #cbb88f;
+  color: #8a7042;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+}
+.cancel-summary > div {
+  min-width: 0;
+  padding: 13px 14px;
+  border-bottom: 1px solid #eee5d3;
+}
+.cancel-summary > div:nth-child(3n + 2) {
+  padding-left: 0;
+}
+.cancel-summary > div span {
+  display: block;
+  margin-bottom: 6px;
+  color: #85775e;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.055em;
+}
+.cancel-summary > div b {
+  display: block;
+  color: #342f27;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+}
+.cancel-summary .cancel-client {
+  grid-column: 1/-1;
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  padding: 5px 0 17px;
+  border-bottom: 1px dashed #cbb88f;
+}
+.cancel-summary .cancel-client-text span {
+  margin-bottom: 4px;
+}
+.cancel-summary .cancel-client-text b {
+  font-size: 18px;
+}
+.cancel-summary .cancel-avatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 48px;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: #efe2c5;
+  color: #755b2e;
+  font-weight: 800;
+}
+@media (max-width: 650px) {
+  .cancel-summary {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    padding: 14px;
+  }
+  .cancel-summary > div {
+    padding: 11px 8px;
+  }
+  .cancel-summary > div:nth-child(3n + 2) {
+    padding-left: 8px;
+  }
+  .cancel-summary .cancel-client {
+    grid-column: 1/-1;
+  }
+}
+@media (max-width: 390px) {
+  .cancel-summary {
+    grid-template-columns: 1fr;
+  }
+  .cancel-summary:before,
+  .cancel-summary .cancel-client {
+    grid-column: 1;
+  }
+  .cancel-summary > div {
+    padding-left: 0 !important;
+  }
+}
