@@ -1,8 +1,7 @@
-/* Contenedor principal de la Card */
 .page-admin-empleados .employees-card {
   background: #ffffff;
   border-radius: 16px;
-  padding: 32px 36px;
+  padding: 24px 28px;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
   border: 1px solid #f2efea;
   font-family:
@@ -10,35 +9,33 @@
     sans-serif;
 }
 
-/* Encabezado del contenedor */
 .page-admin-empleados .card-head {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 28px;
+  margin-bottom: 20px;
 }
 
 .page-admin-empleados .head-title h2 {
-  font-size: 22px;
+  font-size: 20px;
   font-weight: 600;
   color: #222222;
-  margin: 0 0 6px 0;
+  margin: 0 0 4px 0;
 }
 
 .page-admin-empleados .head-title p {
-  font-size: 14px;
+  font-size: 13px;
   color: #8c8c8c;
   margin: 0;
 }
 
-/* Botón principal dorado */
 .page-admin-empleados .btn-primary-gold {
   background-color: #b5830a;
   color: #ffffff;
   border: none;
-  padding: 12px 22px;
+  padding: 10px 18px;
   border-radius: 10px;
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 600;
   cursor: pointer;
   display: flex;
@@ -52,18 +49,16 @@
 }
 
 .page-admin-empleados .btn-primary-gold .btn-icon {
-  font-size: 16px;
+  font-size: 15px;
   font-weight: bold;
   line-height: 1;
 }
 
-/* Envoltura de la tabla */
 .page-admin-empleados .table-wrap {
   width: 100%;
-  overflow-x: auto;
+  overflow-x: hidden;
 }
 
-/* Tabla de datos con diseño fijo */
 .page-admin-empleados .data-table {
   width: 100%;
   table-layout: fixed;
@@ -73,53 +68,87 @@
 
 .page-admin-empleados .data-table th:nth-child(1),
 .page-admin-empleados .data-table td:nth-child(1) {
-  width: 22%;
+  width: 7%;
 }
+
+/* Código */
 
 .page-admin-empleados .data-table th:nth-child(2),
 .page-admin-empleados .data-table td:nth-child(2) {
-  width: 18%;
+  width: 13%;
 }
+
+/* Nombre */
 
 .page-admin-empleados .data-table th:nth-child(3),
 .page-admin-empleados .data-table td:nth-child(3) {
-  width: 18%;
-}
-
-.page-admin-empleados .data-table th:nth-child(4),
-.page-admin-empleados .data-table td:nth-child(4) {
-  width: 16%;
-}
-
-.page-admin-empleados .data-table th:nth-child(5),
-.page-admin-empleados .data-table td:nth-child(5) {
   width: 14%;
 }
 
+/* Correo */
+
+.page-admin-empleados .data-table th:nth-child(4),
+.page-admin-empleados .data-table td:nth-child(4) {
+  width: 9%;
+}
+
+/* Teléfono */
+
+.page-admin-empleados .data-table th:nth-child(5),
+.page-admin-empleados .data-table td:nth-child(5) {
+  width: 10%;
+}
+
+/* Área / Puesto */
+
 .page-admin-empleados .data-table th:nth-child(6),
 .page-admin-empleados .data-table td:nth-child(6) {
-  width: 12%;
+  width: 9%;
+}
+
+/* Rol */
+
+.page-admin-empleados .data-table th:nth-child(7),
+.page-admin-empleados .data-table td:nth-child(7) {
+  width: 9%;
+}
+
+/* Estado */
+
+.page-admin-empleados .data-table th:nth-child(8),
+.page-admin-empleados .data-table td:nth-child(8) {
+  width: 10%;
+}
+
+/* Fecha Ingreso */
+
+.page-admin-empleados .data-table th:nth-child(9),
+.page-admin-empleados .data-table td:nth-child(9) {
+  width: 19%;
   text-align: center;
 }
 
-/* Cabecera de la tabla */
+/* Acciones */
+
 .page-admin-empleados .data-table thead tr {
   background-color: #fcfbfa;
 }
 
 .page-admin-empleados .data-table th {
-  padding: 16px 18px;
-  font-size: 11px;
+  padding: 10px 4px;
+  font-size: 10px;
   font-weight: 700;
   color: #888279;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.2px;
   text-transform: uppercase;
   border-top: 1px solid #f3f0ec;
   border-bottom: 1px solid #f3f0ec;
   vertical-align: middle;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-/* Filas y celdas alineadas verticalmente */
 .page-admin-empleados .data-table tbody tr {
   border-bottom: 1px solid #f4f2ee;
   transition: background-color 0.15s ease;
@@ -134,21 +163,18 @@
 }
 
 .page-admin-empleados .data-table td {
-  padding: 18px;
-  font-size: 14px;
+  padding: 8px 4px;
+  font-size: 11px;
   color: #444444;
   vertical-align: middle;
-  word-break: break-word;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-/* Estilos de textos */
 .page-admin-empleados .col-name {
   font-weight: 500;
   color: #2b2b2b;
-}
-
-.page-admin-empleados .col-user {
-  color: #555555;
 }
 
 .page-admin-empleados .col-date {
@@ -158,16 +184,16 @@
 .page-admin-empleados .badge {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  padding: 5px 12px;
+  gap: 3px;
+  padding: 3px 6px;
   border-radius: 20px;
-  font-size: 13px;
+  font-size: 10px;
   font-weight: 500;
 }
 
 .page-admin-empleados .badge .dot {
-  width: 6px;
-  height: 6px;
+  width: 5px;
+  height: 5px;
   border-radius: 50%;
   display: inline-block;
 }
@@ -176,6 +202,7 @@
   background-color: #eaf4fb;
   color: #225c83;
 }
+
 .page-admin-empleados .role-empleado .dot {
   background-color: #2b7bb9;
 }
@@ -193,6 +220,7 @@
   background-color: #eaf6ed;
   color: #246e37;
 }
+
 .page-admin-empleados .status-activo .dot {
   background-color: #2ea24d;
 }
@@ -201,34 +229,60 @@
   background-color: #fdeaea;
   color: #9c2a2a;
 }
+
 .page-admin-empleados .status-inactivo .dot {
   background-color: #d93838;
 }
 
-.page-admin-empleados .data-table td:last-child {
-  text-align: center;
+.page-admin-empleados .acciones-fila {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: center;
+  gap: 3px;
+  width: 100%;
 }
 
-.page-admin-empleados .btn-action-edit {
-  background: none;
-  border: none;
-  color: #b5830a;
-  font-size: 13px;
+.page-admin-empleados .btn-mini {
+  background: #f4f2ee;
+  border: 1px solid #e6e2db;
+  color: #555555;
+  font-size: 10px;
   font-weight: 600;
+  padding: 4px 6px;
+  border-radius: 5px;
   cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.15s ease;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 5px;
-  padding: 6px 10px;
-  border-radius: 6px;
-  transition: background-color 0.15s ease;
+  gap: 3px;
+  width: 100%;
+  box-sizing: border-box;
 }
 
-.page-admin-empleados .btn-action-edit:hover {
-  background-color: #faf2e2;
+.page-admin-empleados .btn-mini:hover {
+  background: #ebe6df;
+  color: #222222;
 }
 
-.page-admin-empleados .btn-action-edit svg {
-  stroke: #b5830a;
+.page-admin-empleados .btn-mini.danger {
+  background-color: #fdf2f2;
+  border-color: #fcdadc;
+  color: #b42318;
+}
+
+.page-admin-empleados .btn-mini.danger:hover {
+  background-color: #fae8e8;
+}
+
+.page-admin-empleados .btn-mini.ok {
+  background-color: #eaf6ed;
+  border-color: #d1eddb;
+  color: #246e37;
+}
+
+.page-admin-empleados .btn-mini.ok:hover {
+  background-color: #d9f0e0;
 }

@@ -1,4 +1,3 @@
-// Empleados (administrador): lista de empleados y suspendidos, con buscador por código.
 document.addEventListener("DOMContentLoaded", () =>
   TG.listo(async () => {
     const tbody = document.querySelector(".data-table tbody");
@@ -10,7 +9,6 @@ document.addEventListener("DOMContentLoaded", () =>
     let empleados = [],
       pestana = "empleados";
 
-    /* Reglas del buscador: exactamente 4 caracteres, sin espacios, en mayúsculas, solo letras y números */
     buscador.addEventListener("input", () => {
       buscador.value = TG.reglas.codigoEmpleado.filtro(buscador.value);
       pintarTabla();
@@ -27,27 +25,28 @@ document.addEventListener("DOMContentLoaded", () =>
       '"><span class="dot"></span>' +
       TG.esc(r) +
       "</span>";
+
     const badgeEstado = (e) =>
       e === "Suspendido"
         ? TG.insigniaEstado("Suspendido")
         : '<span class="badge badge-status ' +
-          (e === "Activo" ? "status-activo" : "status-inactivo") +
-          '"><span class="dot"></span>' +
-          TG.esc(e) +
-          "</span>";
+        (e === "Activo" ? "status-activo" : "status-inactivo") +
+        '"><span class="dot"></span>' +
+        TG.esc(e) +
+        "</span>";
 
     const fila = (e) => {
       const sus = e.estado === "Suspendido";
       const acciones = sus
         ? '<button class="btn-mini ok" type="button" data-reactivar="' +
-          e.id +
-          '">↺ Restablecer</button>'
+        e.id +
+        '">↺ Restablecer</button>'
         : '<div class="acciones-fila"><button class="btn-mini danger" type="button" data-suspender="' +
-          e.id +
-          '">⏸ Suspender</button>' +
-          '<button class="btn-mini" type="button" data-clave="' +
-          e.id +
-          '">🔑 Restablecer contraseña</button></div>';
+        e.id +
+        '">⏸ Suspender</button>' +
+        '<button class="btn-mini" type="button" data-clave="' +
+        e.id +
+        '">🔑 Restablecer contraseña</button></div>';
       return (
         '<tr data-id="' +
         e.id +
@@ -55,8 +54,6 @@ document.addEventListener("DOMContentLoaded", () =>
         TG.esc(e.codigo || "—") +
         '</strong></td><td class="col-name">' +
         TG.esc(e.nombre) +
-        '</td><td class="col-user">' +
-        TG.esc(e.usuario) +
         "</td><td>" +
         TG.esc(e.correo || "—") +
         "</td><td>" +
@@ -84,19 +81,18 @@ document.addEventListener("DOMContentLoaded", () =>
       const grupo = empleados.filter(
         (e) => (e.estado === "Suspendido") === sus,
       );
-      /* Contador de la cabecera: se actualiza solo según la pestaña */
       contador.textContent = sus
         ? grupo.length + " suspendidos"
         : grupo.length +
-          (grupo.length === 1 ? " empleado" : " empleados") +
-          " con acceso al sistema";
+        (grupo.length === 1 ? " empleado" : " empleados") +
+        " con acceso al sistema";
       filtroEstado.style.display = sus ? "none" : "";
 
       let lista = grupo,
         aviso = "";
       const q = buscador.value;
       if (q.length === 4 && TG.reglas.codigoEmpleado.ok(q)) {
-        const encontrado = empleados.find((e) => e.codigo === q);
+        const encontrado = empleados.find((x) => x.codigo === q);
         if (!encontrado) aviso = "Código no existe";
         else if (!sus && encontrado.estado === "Suspendido")
           aviso = "El empleado se encuentra suspendido";
@@ -104,23 +100,23 @@ document.addEventListener("DOMContentLoaded", () =>
           aviso = "El empleado no está suspendido";
         lista = aviso ? [] : [encontrado];
       } else if (!sus && filtroEstado.value !== "Todos") {
-        lista = grupo.filter((e) => e.estado === filtroEstado.value);
+        lista = grupo.filter((x) => x.estado === filtroEstado.value);
       }
       msg.style.display = aviso ? "block" : "none";
       msg.textContent = aviso;
       tbody.innerHTML = lista.length
         ? lista
-            .slice()
-            .sort((a, b) => (a.codigo || "").localeCompare(b.codigo || ""))
-            .map(fila)
-            .join("")
-        : '<tr><td colspan="10" class="aviso-vacio">' +
-          (aviso
-            ? ""
-            : sus
-              ? "No hay empleados suspendidos."
-              : "No hay empleados para mostrar.") +
-          "</td></tr>";
+          .slice()
+          .sort((a, b) => (a.codigo || "").localeCompare(b.codigo || ""))
+          .map(fila)
+          .join("")
+        : '<tr><td colspan="9" class="aviso-vacio">' +
+        (aviso
+          ? ""
+          : sus
+            ? "No hay empleados suspendidos."
+            : "No hay empleados para mostrar.") +
+        "</td></tr>";
     }
 
     pestanas.forEach((b) =>
@@ -150,8 +146,8 @@ document.addEventListener("DOMContentLoaded", () =>
           if (
             !confirm(
               "¿Suspender a " +
-                emp.nombre +
-                "? Ya no podrá ingresar al sistema.",
+              emp.nombre +
+              "? Ya no podrá ingresar al sistema.",
             )
           )
             return;
@@ -182,7 +178,7 @@ document.addEventListener("DOMContentLoaded", () =>
                 readonly: true,
               },
             ],
-            onOk: async () => {},
+            onOk: async () => { },
           });
           await cargar();
         }
