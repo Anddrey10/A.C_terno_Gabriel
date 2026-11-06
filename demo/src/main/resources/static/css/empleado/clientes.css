@@ -1,6 +1,5 @@
 /* Estilos específicos de Clientes. */
-.page-empleado-clientes .content {
-}
+.page-empleado-clientes .content {}
 
 /* Badges de estado en la tabla (Estilo de pastilla con punto) */
 .page-empleado-clientes .status-badge {
@@ -26,6 +25,7 @@
   background-color: #e6f4ea;
   color: #137333;
 }
+
 .page-empleado-clientes .status-badge.active .dot {
   background-color: #137333;
 }
@@ -35,6 +35,7 @@
   background-color: #fce8e6;
   color: #c5221f;
 }
+
 .page-empleado-clientes .status-badge.debt .dot {
   background-color: #c5221f;
 }

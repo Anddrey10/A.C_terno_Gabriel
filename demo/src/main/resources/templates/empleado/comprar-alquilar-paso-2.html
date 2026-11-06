@@ -49,7 +49,7 @@
         </div>
 
         <div class="content">
-          <!-- Pestañas de Tipo de Operación (Estilo Solapa Subrayada) -->
+          <!-- Pestañas de Tipo de Operación -->
           <div
             aria-label="Tipo de operación"
             class="operation-tabs"
@@ -123,7 +123,7 @@
             </div>
           </div>
 
-          <!-- Formulario Paso 2 (3 columnas x 2 filas) -->
+          <!-- Formulario Paso 2 (3 columnas) sin el selector de Estado -->
           <section class="card flow-card">
             <div class="card-head">
               <div>
@@ -295,20 +295,6 @@
                     "
                   />
                 </label>
-                <label class="field">
-                  <span>Estado</span>
-                  <select
-                    data-flow-field=""
-                    name="estado"
-                    style="
-                      border: 1px solid #d0d5dd;
-                      border-radius: 8px;
-                      padding: 10px 14px;
-                    "
-                  >
-                    <option selected>En proceso</option>
-                  </select>
-                </label>
               </div>
 
               <!-- Botones de Acción -->
@@ -360,5 +346,6 @@
     <script th:src="@{/js/api.js}" defer></script>
     <script defer="" th:src="@{/js/app.js}"></script>
     <script defer="" th:src="@{/js/empleado/comprar-alquilar.js}"></script>
+    <script defer="" th:src="@{/js/empleado/comprar-alquilar-p2.js}"></script>
   </body>
 </html>
