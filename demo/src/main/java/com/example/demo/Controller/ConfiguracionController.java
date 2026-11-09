@@ -1,5 +1,6 @@
 package com.example.demo.Controller;
 
+import org.springframework.security.access.prepost.PreAuthorize;
 import java.util.List;
 import java.util.Map;
 import org.springframework.web.bind.annotation.*;
@@ -22,6 +23,7 @@ public class ConfiguracionController {
     }
 
     /* El administrador cambia un valor (penalidadDemora, penalidadMalEstado) y el empleado lo usa al registrar devoluciones */
+    @PreAuthorize("hasAuthority('ADMIN')")
     @PutMapping("{clave}")
     public Configuracion cambiar(@PathVariable String clave, @RequestBody Map<String, Object> datos) {
         return servicio.cambiar(clave, datos.get("valor"), datos.get("modificadoPor"));

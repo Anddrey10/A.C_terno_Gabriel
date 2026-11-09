@@ -25,11 +25,15 @@ public class Penalidad extends Base {
     private Double monto;
 
     // Desglose para que el tablero pueda sumar demora y mal estado por separado.
+    @PositiveOrZero(message = "El monto por demora no puede ser negativo")
     private Double montoDemora = 0.0;
+
+    @PositiveOrZero(message = "El monto por mal estado no puede ser negativo")
     private Double montoMalEstado = 0.0;
 
     @Pattern(regexp = "Cobrado|Pendiente", message = "El estado debe ser Cobrado o Pendiente")
     private String estado = "Pendiente";
 
+    @NotNull(message = "La fecha de la penalidad es obligatoria")
     private LocalDate fecha = LocalDate.now();
 }

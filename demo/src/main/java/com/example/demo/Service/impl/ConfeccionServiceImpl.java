@@ -87,6 +87,23 @@ public class ConfeccionServiceImpl implements ConfeccionService {
         return guardada;
     }
 
+    @Override
+    @Transactional
+    public Confeccion registrarPrueba(Long id, String comentario, LocalDate entregaFinal) {
+        Confeccion orden = dao.buscarPorId(id).orElseThrow(() -> new IllegalArgumentException("La orden de confección no existe"));
+        Preconditions.checkArgument("En confección".equals(orden.getEstado()), "Solo se puede registrar una prueba en órdenes que siguen en confección");
+        Preconditions.checkArgument(StringUtils.isNotBlank(comentario), "El comentario de la prueba es obligatorio");
+        Preconditions.checkArgument(entregaFinal != null, "La fecha de entrega es obligatoria");
+        Preconditions.checkArgument(!entregaFinal.isBefore(LocalDate.now()), "La fecha de entrega no puede ser anterior a hoy");
+        String linea = "[" + LocalDate.now() + "] " + StringUtils.abbreviate(comentario.trim(), 500);
+        orden.setComentarioPrueba(StringUtils.isBlank(orden.getComentarioPrueba()) ? linea : orden.getComentarioPrueba() + "\n" + linea);
+        orden.setPruebas((orden.getPruebas() == null ? 0 : orden.getPruebas()) + 1);
+        orden.setEntregaFinal(entregaFinal);
+        orden.setFechaEntrega(entregaFinal);
+        LOG.info("Prueba {} registrada para el ticket {}", orden.getPruebas(), orden.getTicket());
+        return dao.guardar(orden);
+    }
+
     private String extraerColor(String detalle) {
         if (StringUtils.isBlank(detalle)) return "";
         Matcher m = COLORES.matcher(detalle);

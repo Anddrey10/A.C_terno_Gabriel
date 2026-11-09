@@ -1,0 +1,211 @@
+.page-admin-metodos-pago .pago-settings {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 20px;
+  align-items: start;
+}
+
+@media (max-width: 992px) {
+  .page-admin-metodos-pago .pago-settings {
+    grid-template-columns: 1fr;
+  }
+}
+
+.page-admin-metodos-pago .card-pago {
+  background: #ffffff;
+  border-radius: 20px;
+  padding: 24px;
+  border: 1px solid #f2efea;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.03);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.page-admin-metodos-pago .pago-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.page-admin-metodos-pago .pago-head h2 {
+  margin: 0;
+  font-size: 18px;
+}
+
+.page-admin-metodos-pago .pago-meta {
+  font-size: 12px;
+  color: #7d7a75;
+}
+
+.page-admin-metodos-pago .qr-editor {
+  display: flex;
+  gap: 18px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.page-admin-metodos-pago .qr-preview {
+  width: 170px;
+  height: 170px;
+  border: 1px dashed #b8860b;
+  border-radius: 12px;
+  background: #fdfcf7;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  color: #7d7a75;
+  font-size: 13px;
+  text-align: center;
+}
+
+.page-admin-metodos-pago .qr-preview img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  background: #fff;
+}
+
+.page-admin-metodos-pago .qr-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.page-admin-metodos-pago .qr-actions small {
+  color: #7d7a75;
+  font-size: 12px;
+}
+
+.page-admin-metodos-pago .btn-edit {
+  background: #fbf9f4;
+  border: 1px solid #e8e3d5;
+  color: #66625b;
+  padding: 8px 14px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.page-admin-metodos-pago .btn-edit:hover {
+  background: #be8a12;
+  color: #ffffff;
+  border-color: #be8a12;
+}
+
+.page-admin-metodos-pago .pago-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #66625b;
+}
+
+.page-admin-metodos-pago .pago-field input {
+  border: 1px solid #e8e3d5;
+  border-radius: 10px;
+  padding: 12px 14px;
+  font-size: 14px;
+  font-family: inherit;
+  background: #fff;
+  color: var(--color-ink);
+}
+
+.page-admin-metodos-pago .pago-field input:focus {
+  outline: 2px solid #be8a12;
+  outline-offset: 0;
+  border-color: #be8a12;
+}
+
+.page-admin-metodos-pago .btn-gold {
+  background: #be8a12;
+  color: #ffffff;
+  border: none;
+  border-radius: 12px;
+  padding: 14px;
+  font-weight: 700;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background 0.2s ease;
+  width: 100%;
+}
+
+.page-admin-metodos-pago .btn-gold:hover {
+  background: #a3750d;
+}
+
+.page-admin-metodos-pago .btn-gold:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
+/* Vista de lo guardado + botón Editar en cada contenedor */
+.page-admin-metodos-pago .pago-vista,
+.page-admin-metodos-pago .pago-form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.page-admin-metodos-pago [hidden] {
+  display: none !important;
+}
+
+.page-admin-metodos-pago .pago-vista .qr-preview {
+  align-self: flex-start;
+}
+
+.page-admin-metodos-pago .pago-vista .btn-edit {
+  align-self: flex-start;
+}
+
+.page-admin-metodos-pago .pago-datos {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.page-admin-metodos-pago .pago-dato {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #f2efea;
+}
+
+.page-admin-metodos-pago .pago-dato span {
+  font-size: 12px;
+  color: #7d7a75;
+}
+
+.page-admin-metodos-pago .pago-dato strong {
+  font-size: 15px;
+  word-break: break-all;
+}
+
+.page-admin-metodos-pago .pago-botones {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.page-admin-metodos-pago .pago-botones .btn-gold {
+  flex: 1;
+}
+
+.page-admin-metodos-pago .pago-ayuda {
+  font-weight: 400;
+  color: #7d7a75;
+  font-size: 12px;
+}
+
+.page-admin-metodos-pago .pago-field input.invalido {
+  border-color: #c0392b;
+}

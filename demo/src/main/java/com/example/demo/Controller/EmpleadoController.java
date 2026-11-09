@@ -2,6 +2,7 @@ package com.example.demo.Controller;
 
 import java.util.List;
 import java.util.Map;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import jakarta.validation.Valid;
 import com.example.demo.Model.Empleado;
@@ -9,6 +10,8 @@ import com.example.demo.Service.EmpleadoService;
 
 @RestController
 @RequestMapping("/api/empleados")
+/* Solo el administrador gestiona empleados (autorización a nivel de método) */
+@PreAuthorize("hasAuthority('ADMIN')")
 public class EmpleadoController {
 
     private final EmpleadoService servicio;
@@ -47,6 +50,13 @@ public class EmpleadoController {
     @PutMapping("restablecer/{id}")
     public Map<String, String> restablecerContrasena(@PathVariable Long id) {
         return Map.of("mensaje", "Contraseña restablecida", "contrasena", servicio.restablecerContrasena(id));
+    }
+
+    /* El administrador escribe la contraseña nueva directamente (sin contraseña temporal) */
+    @PutMapping("contrasena/{id}")
+    public Map<String, String> cambiarContrasena(@PathVariable Long id, @RequestBody Map<String, String> datos) {
+        servicio.cambiarContrasena(id, datos.get("contrasena"));
+        return Map.of("mensaje", "Contraseña actualizada");
     }
 
     @DeleteMapping("eliminar/{id}")

@@ -30,4 +30,9 @@ public class EmpleadoDaoJpa extends JpaDao<Empleado> implements EmpleadoDao {
     public Optional<Empleado> buscarPorUsuario(String usuario) {
         return repositorio.findByUsuarioIgnoreCase(usuario);
     }
+
+    @Override
+    public Optional<Empleado> buscarPorCorreo(String correo) {
+        return repositorio.findFirstByCorreoIgnoreCase(correo);
+    }
 }

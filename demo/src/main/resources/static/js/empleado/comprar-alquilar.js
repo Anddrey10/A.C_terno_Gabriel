@@ -15,6 +15,7 @@ window.CA = (() => {
           "correo",
           "fechaRecojo",
           "fechaDevolucion",
+          "cobrarDosDias",
         ],
         3: ["aceptaTerminos"],
         4: ["metodo", "entregado", "vuelto", "total"],
@@ -65,13 +66,31 @@ window.CA = (() => {
       return this.leer().operacion || "Alquilar";
     }
 
-    /* Precio segun la operacion */
+    /* Dias del alquiler: de la fecha de recojo a la de devolucion (minimo 1) */
+    diasAlquiler() {
+      const s = this.leer();
+
+      if (!s.fechaRecojo || !s.fechaDevolucion) return 1;
+
+      return Math.max(1, TG.diasEntre(s.fechaRecojo, s.fechaDevolucion));
+    }
+
+    /* Dias que se cobran: con la opcion marcada, los dias 1 y 2 se cobran como uno solo */
+    diasCobrados() {
+      const dias = this.diasAlquiler();
+
+      return this.leer().cobrarDosDias ? Math.max(1, dias - 1) : dias;
+    }
+
+    /* Precio segun la operacion (el alquiler es precio por dia x dias cobrados) */
     precioFinal() {
       const s = this.leer();
 
-      return this.operacion() === "Comprar"
-        ? Number(s.precioVenta)
-        : Number(s.precioAlquiler);
+      if (this.operacion() === "Comprar") return Number(s.precioVenta);
+
+      return (
+        Math.round(Number(s.precioAlquiler) * this.diasCobrados() * 100) / 100
+      );
     }
   }
 

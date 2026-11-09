@@ -19,6 +19,11 @@ document.addEventListener("DOMContentLoaded", () =>
       pintarTabla();
     };
 
+    /* En la columna NOMBRE se muestran nombre y apellido juntos (los empleados antiguos pueden no tener apellido) */
+    const completo = (e) => ((e.nombre || "") + " " + (e.apellido || "")).trim();
+    /* Contraseña oculta que se muestra al editar: si no se toca, la contraseña actual no cambia */
+    const CLAVE_OCULTA = "••••••••";
+
     const badgeRol = (r) =>
       '<span class="badge badge-role ' +
       (r === "Administrador" ? "role-admin" : "role-empleado") +
@@ -37,11 +42,19 @@ document.addEventListener("DOMContentLoaded", () =>
 
     const fila = (e) => {
       const sus = e.estado === "Suspendido";
-      const acciones = sus
-        ? '<button class="btn-mini ok" type="button" data-reactivar="' +
+      const editar =
+        '<button class="btn-mini" type="button" data-editar="' +
         e.id +
-        '">↺ Restablecer</button>'
-        : '<div class="acciones-fila"><button class="btn-mini danger" type="button" data-suspender="' +
+        '">✎ Editar</button>';
+      const acciones = sus
+        ? '<div class="acciones-fila">' +
+        editar +
+        '<button class="btn-mini ok" type="button" data-reactivar="' +
+        e.id +
+        '">↺ Restablecer</button></div>'
+        : '<div class="acciones-fila">' +
+        editar +
+        '<button class="btn-mini danger" type="button" data-suspender="' +
         e.id +
         '">⏸ Suspender</button>' +
         '<button class="btn-mini" type="button" data-clave="' +
@@ -53,7 +66,7 @@ document.addEventListener("DOMContentLoaded", () =>
         '"><td class="col-name"><strong>' +
         TG.esc(e.codigo || "—") +
         '</strong></td><td class="col-name">' +
-        TG.esc(e.nombre) +
+        TG.esc(completo(e)) +
         "</td><td>" +
         TG.esc(e.correo || "—") +
         "</td><td>" +
@@ -130,10 +143,15 @@ document.addEventListener("DOMContentLoaded", () =>
     filtroEstado.addEventListener("change", pintarTabla);
 
     tbody.addEventListener("click", async (e) => {
-      const bSu = e.target.closest("[data-suspender]"),
+      const bEd = e.target.closest("[data-editar]"),
+        bSu = e.target.closest("[data-suspender]"),
         bRe = e.target.closest("[data-reactivar]"),
         bCl = e.target.closest("[data-clave]");
       try {
+        if (bEd) {
+          abrirEdicion(empleados.find((x) => x.id === Number(bEd.dataset.editar)));
+          return;
+        }
         if (bSu) {
           const emp = empleados.find(
             (x) => x.id === Number(bSu.dataset.suspender),
@@ -146,7 +164,7 @@ document.addEventListener("DOMContentLoaded", () =>
           if (
             !confirm(
               "¿Suspender a " +
-              emp.nombre +
+              completo(emp) +
               "? Ya no podrá ingresar al sistema.",
             )
           )
@@ -161,31 +179,127 @@ document.addEventListener("DOMContentLoaded", () =>
           await cargar();
         }
         if (bCl) {
+          /* Sin contraseña temporal: se abre directo el formulario para escribir la contraseña nueva */
           const emp = empleados.find((x) => x.id === Number(bCl.dataset.clave));
-          if (!confirm("¿Restablecer la contraseña de " + emp.nombre + "?"))
-            return;
-          const r = await TG.put("/api/empleados/restablecer/" + emp.id);
           TG.modal({
-            titulo: "Contraseña restablecida",
-            subtitulo:
-              "Entrégale esta contraseña temporal a " + emp.nombre + ".",
-            textoOk: "Cerrar",
+            titulo: "Nueva contraseña",
+            subtitulo: "Escribe la contraseña nueva de " + completo(emp) + ".",
+            textoOk: "Guardar contraseña",
             campos: [
               {
-                name: "clave",
-                label: "Contraseña temporal",
-                value: r.contrasena,
-                readonly: true,
+                name: "contrasena",
+                label: "Contraseña nueva",
+                type: "password",
+                placeholder: "Mínimo 4 caracteres",
+                regla: "contrasena",
+                autocomplete: false,
               },
             ],
-            onOk: async () => { },
+            onOk: async (v) => {
+              await TG.put("/api/empleados/contrasena/" + emp.id, {
+                contrasena: v.contrasena,
+              });
+              TG.toast("Contraseña actualizada");
+            },
           });
-          await cargar();
         }
       } catch (err) {
         TG.toast(err.message);
       }
     });
+
+    /* Campos del formulario (los mismos para agregar y para editar). El código, el estado y la fecha de ingreso
+       los genera el sistema, por eso no aparecen. */
+    const camposEmpleado = (e) => {
+      const ed = !!e;
+      /* limpiarAlClic: al editar, cada campo conserva su valor hasta que se hace clic en él */
+      const base = (c) => (ed ? { ...c, limpiarAlClic: true } : c);
+      return [
+        base({
+          name: "nombre",
+          label: "Nombre",
+          placeholder: "Ej. Luis Alberto",
+          regla: "nombre",
+          value: ed ? e.nombre : undefined,
+        }),
+        base({
+          name: "apellido",
+          label: "Apellido",
+          placeholder: "Ej. Salazar Ortiz",
+          regla: "nombre",
+          value: ed ? e.apellido || "" : undefined,
+        }),
+        base({
+          name: "usuario",
+          label: "Usuario",
+          placeholder: "Ej. l.salazar",
+          regla: "usuario",
+          value: ed ? e.usuario : undefined,
+        }),
+        base({
+          name: "contrasena",
+          label: "Contraseña",
+          placeholder: "Mínimo 4 caracteres",
+          regla: "contrasena",
+          type: ed ? "password" : undefined,
+          value: ed ? CLAVE_OCULTA : undefined,
+        }),
+        base({
+          name: "correo",
+          label: "Correo electrónico",
+          placeholder: "Ej. nombre@gmail.com",
+          regla: "correo",
+          value: ed ? e.correo : undefined,
+        }),
+        base({
+          name: "telefono",
+          label: "Teléfono",
+          placeholder: "Ej. 987654321",
+          regla: "celular",
+          value: ed ? e.telefono : undefined,
+        }),
+        base({
+          name: "area",
+          label: "Área o puesto de trabajo",
+          placeholder: "Ej. Ventas",
+          regla: "area",
+          value: ed ? e.area : undefined,
+        }),
+        {
+          name: "rol",
+          label: "Rol",
+          options: ["Empleado", "Administrador"],
+          value: ed ? e.rol : "Empleado",
+        },
+      ];
+    };
+
+    function abrirEdicion(emp) {
+      if (!emp) return;
+      TG.modal({
+        titulo: "Editar empleado " + (emp.codigo || ""),
+        subtitulo:
+          "Haz clic en un campo para escribir un dato nuevo; los que no toques se quedan igual. Todos son obligatorios.",
+        textoOk: "Guardar cambios",
+        campos: camposEmpleado(emp),
+        onOk: async (v) => {
+          const datos = {
+            nombre: v.nombre,
+            apellido: v.apellido,
+            usuario: v.usuario,
+            correo: v.correo,
+            telefono: v.telefono,
+            area: v.area,
+            rol: v.rol,
+          };
+          /* Si la contraseña sigue oculta no se envía y se conserva la actual */
+          if (v.contrasena !== CLAVE_OCULTA) datos.contrasena = v.contrasena;
+          await TG.put("/api/empleados/actualizar/" + emp.id, datos);
+          TG.toast("Empleado actualizado");
+          await cargar();
+        },
+      });
+    }
 
     document
       .getElementById("btnAgregarEmpleado")
@@ -194,50 +308,7 @@ document.addEventListener("DOMContentLoaded", () =>
           titulo: "Agregar empleado",
           subtitulo: "El código se genera automáticamente.",
           textoOk: "Guardar empleado",
-          campos: [
-            {
-              name: "nombre",
-              label: "Nombre completo",
-              placeholder: "Ej. Luis Alberto Salazar",
-              regla: "nombre",
-            },
-            {
-              name: "usuario",
-              label: "Usuario",
-              placeholder: "Ej. l.salazar",
-              regla: "usuario",
-            },
-            {
-              name: "contrasena",
-              label: "Contraseña",
-              placeholder: "Mínimo 4 caracteres",
-              regla: "contrasena",
-            },
-            {
-              name: "correo",
-              label: "Correo electrónico",
-              placeholder: "Ej. nombre@gmail.com",
-              regla: "correo",
-            },
-            {
-              name: "telefono",
-              label: "Teléfono",
-              placeholder: "Ej. 987654321",
-              regla: "celular",
-            },
-            {
-              name: "area",
-              label: "Área o puesto de trabajo",
-              placeholder: "Ej. Ventas",
-              regla: "area",
-            },
-            {
-              name: "rol",
-              label: "Rol",
-              options: ["Empleado", "Administrador"],
-              value: "Empleado",
-            },
-          ],
+          campos: camposEmpleado(null),
           onOk: async (v) => {
             await TG.post("/api/empleados/nuevo", { ...v, estado: "Activo" });
             TG.toast("Empleado agregado");

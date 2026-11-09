@@ -18,7 +18,6 @@
       );
 
       const pagoGrid = document.getElementById("pagoGridContainer");
-      const yapeBox = document.getElementById("yapeAdminContainer");
       const inputEntregado = document.getElementById("pagoEntregado");
       const totalInput = document.getElementById("pagoTotalCobrar");
       const inputTercero = document.getElementById("inputTercerCampo");
@@ -97,10 +96,6 @@
           if (labelTercero) {
             labelTercero.textContent = "Vuelto automático";
           }
-
-          if (yapeBox) {
-            yapeBox.style.display = "none";
-          }
         } else {
           pagoGrid?.classList.add("transferencia-layout");
 
@@ -108,12 +103,11 @@
             campoTercero.style.display = "none";
           }
 
-          if (yapeBox) {
-            yapeBox.style.display = m === "Yape" ? "block" : "none";
-          }
-
           inputEntregado.value = total.toFixed(2);
         }
+
+        /* Yape: QR + número · Transferencia: cuenta y CCI (datos guardados por el administrador) */
+        TG.mostrarDatosPago(m);
 
         save({ metodo: m });
         recalcular();

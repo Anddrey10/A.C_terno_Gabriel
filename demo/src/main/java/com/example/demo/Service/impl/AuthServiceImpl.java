@@ -35,8 +35,12 @@ public class AuthServiceImpl implements AuthService {
             throw new IntentosExcedidosException("Demasiados intentos fallidos. Espere unos minutos e intente de nuevo.");
         }
 
-        Optional<Empleado> encontrado = empleados.buscarPorUsuario(nombreUsuario)
-            .filter(e -> e.getUsuario().equals(nombreUsuario))
+        /* Se puede ingresar con el usuario o con el correo que registró el administrador */
+        Optional<Empleado> candidato = empleados.buscarPorUsuario(nombreUsuario)
+            .filter(e -> e.getUsuario().equals(nombreUsuario));
+        if (candidato.isEmpty() && nombreUsuario.contains("@")) candidato = empleados.buscarPorCorreo(nombreUsuario);
+
+        Optional<Empleado> encontrado = candidato
             .filter(e -> "Activo".equals(e.getEstado()))
             .filter(e -> contrasenas.coincide(contrasena, e.getContrasena()));
 

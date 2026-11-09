@@ -18,22 +18,30 @@ public class Empleado extends Base {
     @Column(unique = true, length = 4)
     private String codigo;
 
-    @NotBlank(message = "El nombre completo es obligatorio")
+    @NotBlank(message = "El nombre es obligatorio")
+    @Size(max = 100, message = "El nombre no debe superar 100 caracteres")
     private String nombre;
 
+    /* Se escribe justo después del nombre; en la tabla se muestra junto al nombre (columna NOMBRE).
+       Es obligatorio al crear o editar (lo exige el servicio); no lleva @NotBlank para que los empleados antiguos,
+       que todavía no tienen apellido, se puedan suspender o restablecer sin error. */
+    @Size(max = 100, message = "El apellido es demasiado largo")
+    private String apellido;
+
     @NotBlank(message = "El usuario es obligatorio")
-    @Size(min = 4, message = "El usuario debe tener al menos 4 caracteres")
+    @Size(min = 4, max = 50, message = "El usuario debe tener entre 4 y 50 caracteres")
     @Column(unique = true)
     private String usuario;
 
     /* Seguridad: se guarda cifrada (BCrypt) y nunca se devuelve en las respuestas JSON */
     @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
-    @NotBlank(message = "La contraseña es obligatoria")
+    /* Obligatoria al crear (lo exige el servicio); al editar es opcional: si no llega se conserva la actual */
     @Size(min = 4, message = "La contraseña debe tener al menos 4 caracteres")
     private String contrasena;
 
     @NotBlank(message = "El correo es obligatorio")
     @Email(message = "El correo no tiene un formato válido")
+    @Size(max = 100, message = "El correo no debe superar 100 caracteres")
     private String correo;
 
     @NotBlank(message = "El teléfono es obligatorio")
@@ -42,6 +50,7 @@ public class Empleado extends Base {
 
     /* Área o puesto de trabajo */
     @NotBlank(message = "El área o puesto es obligatorio")
+    @Size(max = 100, message = "El área o puesto no debe superar 100 caracteres")
     private String area;
 
     @NotBlank(message = "El rol es obligatorio")

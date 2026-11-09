@@ -31,15 +31,20 @@ public class Cliente extends Base {
 
     @NotBlank(message = "El correo es obligatorio")
     @Email(message = "El correo no tiene un formato válido")
+    @Size(max = 100, message = "El correo no debe superar 100 caracteres")
     private String correo;
 
     @NotBlank(message = "La dirección es obligatoria")
+    @Size(max = 255, message = "La dirección no debe superar 255 caracteres")
     private String direccion;
 
+    @Size(max = 100, message = "El distrito no debe superar 100 caracteres")
     private String distrito;
 
+    @Size(max = 100, message = "El departamento no debe superar 100 caracteres")
     private String departamento;
 
+    @Size(max = 255, message = "La referencia no debe superar 255 caracteres")
     private String referencia;
 
     private java.time.LocalDate registro = java.time.LocalDate.now();
@@ -48,11 +53,15 @@ public class Cliente extends Base {
     @Max(value = 5, message = "La calificación máxima es 5")
     private Integer calificacion;
 
+    @Size(max = 255, message = "El comentario no debe superar 255 caracteres")
     private String comentario;
 
     /* Promedio exacto de todas las calificaciones recibidas (la columna "calificacion" guarda el redondeo) */
+    @DecimalMin(value = "0.0", message = "El promedio no puede ser negativo")
+    @DecimalMax(value = "5.0", message = "El promedio máximo es 5")
     private Double promedio;
 
+    @PositiveOrZero(message = "La cantidad de calificaciones no puede ser negativa")
     private Integer cantidadCalificaciones;
 
     /* Fecha en que el empleado registró la última calificación */

@@ -18,22 +18,8 @@ document.addEventListener("DOMContentLoaded", () =>
 
     /* Buscador de ordenes */
     const inputBusquedaOrden = $("inputBusquedaOrden");
-    inputBusquedaOrden?.addEventListener("input", (e) => {
-      const val = e.target.value.trim();
-      if (val === "") return;
-      const p = val.charAt(0).toUpperCase();
-      if (p === "T") {
-        const nums = val
-          .slice(1)
-          .replace(/[^0-9]/g, "")
-          .slice(0, 7);
-        e.target.value =
-          "T" +
-          (nums.length > 3 ? nums.slice(0, 3) + "-" + nums.slice(3) : nums);
-      } else if (!isNaN(p))
-        e.target.value = val.replace(/[^0-9]/g, "").slice(0, 8);
-      else e.target.value = "";
-    });
+    /* Solo deja escribir un DNI (8 números) o un código de ticket (T001-0083) */
+    TG.filtroBusqueda(inputBusquedaOrden, "T");
 
     /* Referencias */
     const inpDni = $("inputDni"),
@@ -66,6 +52,16 @@ document.addEventListener("DOMContentLoaded", () =>
     const seccionDatosCliente = $("seccionDatosCliente"),
       seccionMedidas = $("seccionMedidasPersonalizacion"),
       seccionPlazos = $("seccionPlazos");
+    const seccionModo = $("seccionModoOrden"),
+      btnModoPrueba = $("btnModoPrueba"),
+      btnModoEntrega = $("btnModoEntrega"),
+      panelPrueba = $("panelPrueba"),
+      pruebaComentario = $("pruebaComentario"),
+      pruebaEntrega = $("pruebaEntrega"),
+      pruebaHistorial = $("pruebaHistorial"),
+      btnGuardarPrueba = $("btnGuardarPrueba"),
+      seccionFinanzas = $("seccionFinanzas"),
+      seccionComprobantes = $("seccionComprobantes");
     const lista = $("listaOrdenesProximas"),
       btnConfirmar = $("btnConfirmarPago");
     const datos = [
@@ -325,19 +321,15 @@ document.addEventListener("DOMContentLoaded", () =>
       );
     }
 
-    const metodos = document.querySelectorAll(".metodo-btn"),
-      yape = $("yapeAdminContainer");
+    const metodos = document.querySelectorAll(".metodo-btn");
     metodos.forEach((b) =>
       b.addEventListener("click", () => {
         metodos.forEach((x) => x.classList.remove("active"));
         b.classList.add("active");
         ticketMetodoPago.textContent = b.dataset.metodo;
         ajustarGrid();
-        yape.style.display = b.dataset.metodo === "Yape" ? "block" : "none";
-        if (b.dataset.metodo === "Yape") {
-          $("yapeAdminTitulo").innerText = "Terno Gabriel - Cuenta Oficial";
-          $("yapeAdminNumero").innerText = "987 654 321";
-        }
+        /* Yape: QR + número · Transferencia: cuenta y CCI (datos guardados por el administrador) */
+        TG.mostrarDatosPago(b.dataset.metodo);
         calcular();
       }),
     );
@@ -426,6 +418,8 @@ document.addEventListener("DOMContentLoaded", () =>
       set("cbEmpleado", u ? u.nombre : "");
       set("cbPago", metodo);
       set("cbTicket", orden.ticket);
+      /* Si en una prueba se cambió la fecha de entrega, la boleta muestra la fecha nueva */
+      set("cbEntrega", TG.fecha(orden.entregaFinal));
       set("cbCodigo", orden.ticket);
       set(
         "cbDetalle",
@@ -469,7 +463,7 @@ document.addEventListener("DOMContentLoaded", () =>
     function modoTicketPagado() {
       document.querySelector(".metodos-pago").style.display = "none";
       pagoGridContainer.style.display = "none";
-      yape.style.display = "none";
+      TG.mostrarDatosPago("Efectivo");
       $("avisoPagadoMetodo").textContent = orden.metodoPago || "Efectivo";
       $("avisoPagadoTotal").hidden = false;
       btnConfirmar.textContent = "Generar boleta >";
@@ -523,8 +517,74 @@ document.addEventListener("DOMContentLoaded", () =>
         tarjeta.style.border = "1px solid #e4d7bb";
         tarjeta.style.background = "#fbf7ee";
       }
-      if (ordenPagada()) modoTicketPagado();
+      /* Dos opciones: Prueba de confección o Entrega. Si ya se registró una prueba, propone Entrega */
+      seccionModo.style.display = "";
+      elegirModo((orden.pruebas || 0) > 0 ? "entrega" : "prueba");
     }
+
+    /* Prueba / Entrega */
+    let entregaIniciada = false;
+    function elegirModo(m) {
+      if (!orden || terminado) return;
+      btnModoPrueba.classList.toggle("activo", m === "prueba");
+      btnModoEntrega.classList.toggle("activo", m === "entrega");
+      panelPrueba.style.display = m === "prueba" ? "" : "none";
+      /* En la prueba no se cobra ni se muestra la boleta; eso es de la entrega */
+      seccionFinanzas.style.display = m === "entrega" ? "" : "none";
+      seccionComprobantes.style.display = m === "entrega" ? "" : "none";
+      if (m === "prueba") {
+        pruebaEntrega.min = hoy;
+        pruebaEntrega.value = orden.entregaFinal || sumarDias(7);
+        pintarHistorial();
+      } else if (ordenPagada() && !entregaIniciada) {
+        /* Ticket pagado completo: la boleta sale sola al elegir Entrega */
+        entregaIniciada = true;
+        modoTicketPagado();
+      }
+    }
+    function pintarHistorial() {
+      const h = (orden.comentarioPrueba || "").trim();
+      pruebaHistorial.style.display = h ? "block" : "none";
+      pruebaHistorial.textContent = h
+        ? "Pruebas anteriores (" + (orden.pruebas || 0) + "):\n" + h
+        : "";
+    }
+    btnModoPrueba.addEventListener("click", () => elegirModo("prueba"));
+    btnModoEntrega.addEventListener("click", () => elegirModo("entrega"));
+    btnGuardarPrueba.addEventListener("click", async () => {
+      if (!orden || terminado) return;
+      const comentario = pruebaComentario.value.trim();
+      if (comentario.length < 5) {
+        TG.marcar(pruebaComentario, "Escribe qué se puede mejorar (mínimo 5 caracteres)");
+        pruebaComentario.focus();
+        return;
+      }
+      TG.marcar(pruebaComentario, null);
+      if (!pruebaEntrega.value || pruebaEntrega.value < hoy) {
+        TG.marcar(pruebaEntrega, "Fecha inválida: no puede ser anterior a hoy");
+        pruebaEntrega.focus();
+        return;
+      }
+      TG.marcar(pruebaEntrega, null);
+      btnGuardarPrueba.disabled = true;
+      try {
+        const r = await TG.put("/api/confecciones/prueba/" + orden.id, {
+          comentario,
+          entregaFinal: pruebaEntrega.value,
+        });
+        orden = { ...orden, ...r };
+        ordenes = ordenes.map((x) => (x.id === orden.id ? orden : x));
+        ticketEntrega.textContent = TG.fecha(orden.entregaFinal);
+        pruebaComentario.value = "";
+        pintarHistorial();
+        pintarBoleta();
+        TG.toast("Prueba registrada · entrega: " + TG.fecha(orden.entregaFinal));
+      } catch (err) {
+        TG.toast(err.message, "error");
+      } finally {
+        btnGuardarPrueba.disabled = false;
+      }
+    });
     lista.addEventListener("click", (e) => {
       const t = e.target.closest(".orden-item-btn");
       if (!t) return;
@@ -579,6 +639,7 @@ document.addEventListener("DOMContentLoaded", () =>
       }
       terminado = true;
       emitiendo = false;
+      seccionModo.style.display = "none";
       pintarBoleta(emitida);
       btnConfirmar.disabled = false;
       btnConfirmar.textContent = "＋ Nueva confección";

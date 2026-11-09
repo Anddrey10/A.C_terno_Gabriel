@@ -2633,3 +2633,25 @@ tbody tr:hover {
 .tg-rank-row strong {
   color: #8a650b;
 }
+
+/* Datos de cobro por transferencia (lo muestra TG.mostrarDatosPago en paso 4 y confección) */
+.pago-datos-fila {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 6px 0;
+  border-bottom: 1px solid var(--color-line);
+  font-size: 0.9rem;
+  text-align: left;
+}
+.pago-datos-fila:last-child {
+  border-bottom: 0;
+}
+.pago-datos-fila span {
+  color: var(--color-muted);
+}
+.pago-datos-fila strong {
+  color: var(--color-gold);
+  word-break: break-all;
+  text-align: right;
+}

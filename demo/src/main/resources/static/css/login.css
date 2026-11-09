@@ -279,3 +279,56 @@
     padding: 24px;
   }
 }
+/* El login ocupa exactamente la pantalla: sin barra de desplazamiento */
+html:has(.login-page),
+body:has(.login-page) {
+  height: 100%;
+  overflow: hidden;
+}
+
+main.login-page {
+  height: 100vh;
+  height: 100dvh;
+  min-height: 0;
+  overflow: hidden;
+}
+
+main.login-page .login-panel {
+  min-height: 0;
+  height: 100%;
+  padding: clamp(12px, 3vh, 36px) 24px;
+  overflow: hidden;
+  align-items: center;
+  justify-content: center;
+}
+
+main.login-page .login-brand {
+  padding: clamp(24px, 6vh, 70px) clamp(28px, 5vw, 80px);
+  min-height: 0;
+}
+
+main.login-page .login-form {
+  margin: 0;
+  gap: clamp(8px, 1.8vh, 15px);
+}
+
+main.login-page .wordmark {
+  font-size: clamp(26px, 4.4vh, 34px);
+  margin-bottom: clamp(8px, 2.5vh, 28px);
+}
+
+main.login-page .login-story h1 {
+  font-size: clamp(26px, 5.5vh, 54px);
+  margin: clamp(10px, 2.5vh, 24px) 0;
+}
+
+main.login-page .gold-line {
+  margin-top: clamp(14px, 3vh, 35px);
+}
+
+@media (max-width: 820px) {
+  main.login-page .login-panel {
+    height: 100%;
+    align-items: center;
+  }
+}

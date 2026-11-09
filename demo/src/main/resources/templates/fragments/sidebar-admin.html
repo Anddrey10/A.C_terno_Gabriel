@@ -71,6 +71,20 @@
           ><span>Penalizaciones</span></a
         >
         <a
+          th:href="@{/admin/metodos-pago}"
+          data-spa-link
+          th:classappend="${active == 'metodos-pago'} ? 'active'"
+          title="Método de pago"
+          ><span class="nav-icon"
+            ><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+              <g>
+                <rect x="2" y="5" width="20" height="14" rx="2" />
+                <path d="M2 10h20" />
+                <path d="M6 15h4" />
+              </g></svg></span
+          ><span>Método de pago</span></a
+        >
+        <a
           th:href="@{/admin/clientes}"
           data-spa-link
           th:classappend="${active == 'clientes'} ? 'active'"

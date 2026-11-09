@@ -5,8 +5,21 @@
   const TG = (window.TG = {});
 
   /* ---------- API ---------- */
+  /* Spring Security guarda el token CSRF en la cookie XSRF-TOKEN; se envía en cada petición que modifica datos */
+  TG.csrf = () => {
+    const m = document.cookie.match(/(?:^|;\s*)XSRF-TOKEN=([^;]*)/);
+    return m ? decodeURIComponent(m[1]) : "";
+  };
+
   TG.api = async (ruta, opciones = {}) => {
-    const init = { method: opciones.method || "GET", headers: {} };
+    const init = {
+      method: (opciones.method || "GET").toUpperCase(),
+      headers: {},
+    };
+    if (init.method !== "GET" && init.method !== "HEAD") {
+      const token = TG.csrf();
+      if (token) init.headers["X-XSRF-TOKEN"] = token;
+    }
     if (opciones.body !== undefined) {
       init.headers["Content-Type"] = "application/json";
       init.body = JSON.stringify(opciones.body);
@@ -16,6 +29,12 @@
       resp = await fetch(ruta, init);
     } catch {
       throw new Error("No se pudo conectar con el servidor.");
+    }
+    /* Si la sesión del servidor venció, se vuelve al inicio de sesión (el login mismo responde 401 con credenciales malas) */
+    if (resp.status === 401 && ruta !== "/api/login") {
+      TG.cerrarSesion();
+      location.replace("/login");
+      throw new Error("Tu sesión venció. Inicia sesión de nuevo.");
     }
     let datos = null;
     try {
@@ -48,6 +67,90 @@
       mapa[c.clave] = c;
     });
     return mapa;
+  };
+
+  /* ---------- Métodos de pago: Yape y transferencia (los edita el administrador en la base de datos) ---------- */
+  TG.metodosPago = async () => {
+    const lista = await TG.get("/api/metodos-pago");
+    const mapa = {};
+    lista.forEach((m) => {
+      mapa[m.tipo] = m;
+    });
+    return mapa;
+  };
+
+  /* Muestra bajo el selector de método los datos de cobro que guardó el administrador:
+     Yape → QR + número · Transferencia → banco, titular, cuenta y CCI. Efectivo no muestra nada.
+     Lo usan el paso 4 de comprar/alquilar y la pantalla de confección (ambas tienen #yapeAdminContainer). */
+  let pedidoPago = 0;
+  TG.mostrarDatosPago = async (metodo) => {
+    const yape = document.getElementById("yapeAdminContainer");
+    if (!yape) return;
+    let trans = document.getElementById("transferenciaAdminContainer");
+    if (!trans) {
+      trans = document.createElement("div");
+      trans.id = "transferenciaAdminContainer";
+      trans.className = "yape-qr-box";
+      trans.style.display = "none";
+      yape.insertAdjacentElement("afterend", trans);
+    }
+    const id = ++pedidoPago;
+    yape.style.display = "none";
+    trans.style.display = "none";
+    if (metodo !== "Yape" && metodo !== "Transferencia") return;
+
+    let datos = {};
+    try {
+      datos = await TG.metodosPago();
+    } catch (err) {
+      TG.toast(err.message);
+      return;
+    }
+    if (id !== pedidoPago) return; /* el empleado ya eligió otro método */
+
+    const agrupar = (n, tam) =>
+      String(n || "")
+        .replace(new RegExp("(.{" + tam + "})(?=.)", "g"), "$1 ")
+        .trim();
+
+    if (metodo === "Yape") {
+      const y = datos.YAPE || {};
+      document.getElementById("yapeAdminTitulo").textContent =
+        "Yape" + (y.titular ? " · " + y.titular : "");
+      const img = document.getElementById("yapeAdminImg");
+      const marco = img.closest(".yape-qr-img-wrapper") || img;
+      if (y.qr) {
+        img.src = y.qr;
+        marco.style.display = "";
+      } else {
+        img.removeAttribute("src");
+        marco.style.display = "none";
+      }
+      document.getElementById("yapeAdminNumero").textContent = y.numero
+        ? agrupar(y.numero, 3)
+        : "Yape sin configurar";
+      yape.style.display = "block";
+      return;
+    }
+
+    const t = datos.TRANSFERENCIA || {};
+    const fila = (k, v) =>
+      v
+        ? '<div class="pago-datos-fila"><span>' +
+          k +
+          "</span><strong>" +
+          TG.esc(v) +
+          "</strong></div>"
+        : "";
+    trans.innerHTML =
+      '<div class="yape-qr-title">Transferencia bancaria</div>' +
+      (t.numero
+        ? fila("Banco", t.banco) +
+          fila("Titular", t.titular) +
+          fila("N.° de cuenta", t.numero) +
+          fila("CCI", t.cci)
+        : '<div class="pago-datos-fila"><strong>Transferencia sin configurar</strong></div>');
+    trans.style.display = "block";
   };
 
   /* ---------- Sesión ---------- */
@@ -545,7 +648,27 @@
           requerido: c.requerido !== false,
         }),
       );
-    const primero = form.querySelector("input:not([readonly]),select,textarea");
+    campos
+      .filter((c) => c.type === "password")
+      .forEach((c) => TG.ojo(form.elements[c.name]));
+
+    /* Campos con limpiarAlClic (edición): muestran su valor actual y solo se vacían cuando la persona
+       hace clic en ese campo; los que no toca se quedan como estaban */
+    campos
+      .filter((c) => c.limpiarAlClic)
+      .forEach((c) => {
+        const el = form.elements[c.name];
+        let limpio = false;
+        el.addEventListener("focus", () => {
+          if (limpio) return;
+          limpio = true;
+          el.value = "";
+        });
+      });
+    /* Al editar no se enfoca ningún campo solo, para que no se vacíe sin querer */
+    const primero = campos.some((c) => c.limpiarAlClic)
+      ? null
+      : form.querySelector("input:not([readonly]),select,textarea");
     primero && primero.focus();
     return { cerrar };
   };
@@ -584,21 +707,33 @@
   };
 
   /* ---------- Calificación obligatoria del cliente (modal que se abre al terminar una boleta) ---------- */
-  const MOTIVOS = {
-    bajo: ["Se comporta mal", "Insulta o maltrata al personal"],
-    medio: ["Se portó normal", "Buen cliente"],
-    alto: ["Recontra buen cliente", "Cliente excelente"],
+  /* La opción de calificación se elige sola según las estrellas */
+  const ETIQUETAS = {
+    5: "Excelente",
+    4: "Bueno",
+    3: "Regular",
+    2: "Malo",
+    1: "Pésimo",
   };
-  /* Comentario que corresponde a las estrellas (misma lógica del modal): si el último comentario ya es de ese grupo se respeta, si no se asigna el primero del grupo */
+  /* Comentarios que se guardaban antes de este cambio */
+  const MOTIVOS_ANTIGUOS = [
+    "Se comporta mal",
+    "Insulta o maltrata al personal",
+    "Se portó normal",
+    "Buen cliente",
+    "Recontra buen cliente",
+    "Cliente excelente",
+  ];
+  /* Comentario que corresponde a las estrellas: siempre la etiqueta de esas estrellas; si el comentario guardado traía un texto adicional (después de " — ") se conserva */
   TG.comentarioAuto = (estrellas, comentario) => {
-    const n = Number(estrellas) || 0;
+    const n = Math.max(0, Math.min(5, Math.round(Number(estrellas) || 0)));
     if (!n) return "—";
-    const grupo =
-      n <= 2 ? MOTIVOS.bajo : n === 3 ? MOTIVOS.medio : MOTIVOS.alto;
-    const base = String(comentario || "")
-      .split(" — ")[0]
-      .trim();
-    return grupo.includes(base) ? String(comentario) : grupo[0];
+    const [base, ...resto] = String(comentario || "").split(" — ");
+    const extra = resto.join(" — ").trim();
+    const b = base.trim();
+    const esMotivo =
+      Object.values(ETIQUETAS).includes(b) || MOTIVOS_ANTIGUOS.includes(b);
+    return ETIQUETAS[n] + (esMotivo && extra ? " — " + extra : "");
   };
   TG.calificarObligatorio = (cliente) =>
     new Promise((resolve) => {
@@ -629,7 +764,6 @@
         motivos = fondo.querySelector("[data-motivos]"),
         etq = fondo.querySelector("[data-etq]"),
         ok = fondo.querySelector("[data-ok]");
-      const grupo = (n) => (n <= 2 ? "bajo" : n === 3 ? "medio" : "alto");
       const pintarEstrellas = () => {
         caja.innerHTML = [1, 2, 3, 4, 5]
           .map(
@@ -644,6 +778,7 @@
           )
           .join("");
       };
+      /* Una sola opción, marcada automáticamente según las estrellas elegidas */
       const pintarMotivos = () => {
         if (!estrellas) {
           motivos.style.display = "none";
@@ -651,24 +786,12 @@
         }
         motivos.style.display = "flex";
         motivos.innerHTML =
-          '<span style="font-size:13px;font-weight:500;color:#374151;">¿Cómo fue el cliente? (obligatorio)</span>' +
-          MOTIVOS[grupo(estrellas)]
-            .map(
-              (m) =>
-                '<button type="button" data-motivo="' +
-                TG.esc(m) +
-                '" style="text-align:left;padding:10px 14px;border-radius:8px;cursor:pointer;font-size:14px;border:1px solid ' +
-                (m === motivo ? "#b3820a" : "#d0d5dd") +
-                ";background:" +
-                (m === motivo ? "#fffaf0" : "#fff") +
-                ";color:#344054;font-weight:" +
-                (m === motivo ? "600" : "500") +
-                ';">' +
-                (m === motivo ? "● " : "○ ") +
-                TG.esc(m) +
-                "</button>",
-            )
-            .join("");
+          '<span style="font-size:13px;font-weight:500;color:#374151;">¿Cómo fue el cliente?</span>' +
+          '<div data-motivo-auto="' +
+          TG.esc(motivo) +
+          '" style="text-align:left;padding:10px 14px;border-radius:8px;font-size:14px;border:1px solid #b3820a;background:#fffaf0;color:#344054;font-weight:600;">● ' +
+          TG.esc(motivo) +
+          "</div>";
       };
       const refrescar = () => {
         pintarEstrellas();
@@ -686,15 +809,8 @@
         if (!b) return;
         const n = Number(b.dataset.n);
         estrellas = n;
-        if (!MOTIVOS[grupo(n)].includes(motivo)) motivo = "";
+        motivo = ETIQUETAS[n];
         refrescar();
-      });
-      motivos.addEventListener("click", (e) => {
-        const b = e.target.closest("[data-motivo]");
-        if (b) {
-          motivo = b.dataset.motivo;
-          refrescar();
-        }
       });
       ok.addEventListener("click", async () => {
         if (!estrellas || !motivo) return;
@@ -827,6 +943,74 @@
       ok: (v) => !!v && v >= TG.hoyISO(),
       msg: "Fecha inválida: no puede ser anterior a hoy",
     },
+  };
+
+  /* Buscadores: solo dejan escribir un DNI (8 números) o el código que genera el sistema.
+     letra "B" → boleta (B001-0083) · letra "T" → ticket de confección (T001-0083).
+     Si se empieza con un número es un DNI (solo números, máximo 8). Si se empieza con una letra solo se acepta
+     la letra indicada, luego la serie 001 y, tras el guion automático, hasta 4 números. */
+  TG.filtroBusqueda = (input, letra) => {
+    if (!input) return;
+    const SERIE = "001";
+    input.maxLength = 9;
+    input.setAttribute("autocomplete", "off");
+    input.addEventListener("input", (e) => {
+      let v = input.value.toUpperCase();
+      if (/^\d/.test(v)) {
+        v = v.replace(/\D/g, "").slice(0, 8);
+      } else if (v) {
+        if (v[0] !== letra) v = "";
+        else {
+          let serie = "",
+            num = "";
+          for (const ch of v.slice(1).replace(/\D/g, "")) {
+            if (serie.length < 3) {
+              if (ch === SERIE[serie.length]) serie += ch;
+            } else if (num.length < 4) num += ch;
+          }
+          const borrando = e && e.inputType && e.inputType.startsWith("delete");
+          v =
+            letra +
+            serie +
+            (serie.length === 3 && (num || !borrando) ? "-" + num : "");
+        }
+      }
+      if (v !== input.value) input.value = v;
+    });
+  };
+
+  /* Ojito para campos de contraseña: al pulsarlo se ve el texto y al volver a pulsarlo se oculta de nuevo */
+  const OJO_ABIERTO =
+    '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z"/><circle cx="12" cy="12" r="3"/></svg>';
+  const OJO_CERRADO =
+    '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17.94 17.94A10.9 10.9 0 0 1 12 19C5 19 1 12 1 12a19.8 19.8 0 0 1 5.06-5.94"/><path d="M9.9 4.24A10.9 10.9 0 0 1 12 4c7 0 11 8 11 8a19.8 19.8 0 0 1-3.17 4.19"/><path d="M1 1l22 22"/></svg>';
+  TG.ojo = (input) => {
+    if (!input || input._tgOjo) return;
+    input._tgOjo = true;
+    /* Los mensajes de error siguen saliendo debajo del campo, no dentro del contenedor del ojito */
+    input._tgCont = input._tgCont || input.parentElement;
+    const caja = document.createElement("span");
+    caja.style.cssText = "position:relative;display:block;width:100%;";
+    input.parentElement.insertBefore(caja, input);
+    caja.appendChild(input);
+    input.style.paddingRight = "42px";
+    const b = document.createElement("button");
+    b.type = "button";
+    b.setAttribute("aria-label", "Mostrar contraseña");
+    b.setAttribute("aria-pressed", "false");
+    b.style.cssText =
+      "position:absolute;top:0;right:0;height:" +
+      (input.offsetHeight || 42) +
+      "px;width:40px;display:flex;align-items:center;justify-content:center;background:none;border:none;padding:0;cursor:pointer;color:#667085;";
+    b.innerHTML = OJO_ABIERTO;
+    b.addEventListener("click", () => {
+      const ver = input.type === "password";
+      input.type = ver ? "text" : "password";
+      b.innerHTML = ver ? OJO_CERRADO : OJO_ABIERTO;
+      b.setAttribute("aria-pressed", ver ? "true" : "false");
+      b.setAttribute("aria-label", ver ? "Ocultar contraseña" : "Mostrar contraseña");
+    });
+    caja.appendChild(b);
   };
 
   /* Pone o quita el borde rojo y el mensaje de un campo */
@@ -1099,7 +1283,23 @@
     });
     document
       .querySelectorAll(".logout-link")
-      .forEach((a) => a.addEventListener("click", TG.cerrarSesion));
+      .forEach((a) =>
+        a.addEventListener("click", (e) => {
+          /* Cierra la sesión también en el servidor (POST /logout de Spring Security) y luego va al login */
+          e.preventDefault();
+          TG.cerrarSesion();
+          const destino = a.href;
+          const token = TG.csrf();
+          fetch("/logout", {
+            method: "POST",
+            headers: token ? { "X-XSRF-TOKEN": token } : {},
+          })
+            .catch(() => {})
+            .finally(() => {
+              location.href = destino;
+            });
+        }),
+      );
   };
 
   /* Ejecuta fn cuando el DOM esté listo y la persona haya iniciado sesión */

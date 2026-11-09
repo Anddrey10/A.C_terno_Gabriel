@@ -10,15 +10,8 @@ document.addEventListener("DOMContentLoaded", () =>
       motivoInput = $("motivoInput");
     let boleta = null;
 
-    searchInput?.addEventListener("input", (e) => {
-      const v = e.target.value;
-      if (!v) return;
-      if (/^[a-zA-Z]/.test(v)) {
-        const n = v.slice(1).replace(/\D/g, "").slice(0, 7);
-        e.target.value =
-          "B" + (n.length > 3 ? n.slice(0, 3) + "-" + n.slice(3) : n);
-      } else e.target.value = v.replace(/\D/g, "").slice(0, 8);
-    });
+    /* Solo deja escribir un DNI (8 números) o un código de boleta (B001-0083) */
+    TG.filtroBusqueda(searchInput, "B");
 
     const buscar = async () => {
       const codigo = searchInput.value.trim();

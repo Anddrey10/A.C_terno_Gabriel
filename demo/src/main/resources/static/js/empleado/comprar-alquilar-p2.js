@@ -21,6 +21,9 @@
       const correo = f("correo");
       const recojo = f("fechaRecojo");
       const devol = f("fechaDevolucion");
+      const dosDias = f("cobrarDosDias");
+      const filaDosDias = document.getElementById("filaDosDias");
+      const detalleCobro = document.getElementById("detalleCobroDias");
 
       const datos = [nombres, apellidos, tel, dir, correo];
 
@@ -77,12 +80,48 @@
 
       devol.min = recojo.value;
 
+      /* Resumen del cobro: dias de alquiler, dias que se cobran y total */
+      const plural = (n) => n + (n === 1 ? " día" : " días");
+
+      const actualizarCobro = () => {
+        if (!detalleCobro) return;
+
+        if (
+          operacion() !== "Alquilar" ||
+          !recojo.value ||
+          !devol.value ||
+          devol.value < recojo.value
+        ) {
+          detalleCobro.textContent = "";
+          return;
+        }
+
+        const dias = sesion.diasAlquiler();
+        const cobrados = sesion.diasCobrados();
+
+        detalleCobro.textContent =
+          plural(dias) +
+          " de alquiler · se cobra" +
+          (cobrados === 1 ? "" : "n") +
+          " " +
+          plural(cobrados) +
+          " · " +
+          TG.money(sesion.precioFinal());
+      };
+
       /* Muestra u oculta la devolucion */
       cabecera.alCambiar = () => {
         const alq = operacion() === "Alquilar";
 
         devol.closest("label").style.display = alq ? "" : "none";
         devol._tg.requerido = alq;
+
+        if (filaDosDias) filaDosDias.style.display = alq ? "" : "none";
+
+        if (!alq && dosDias) {
+          dosDias.checked = false;
+          save({ cobrarDosDias: false });
+        }
 
         if (alq) {
           if (!devol.value || devol.value <= recojo.value) {
@@ -97,6 +136,8 @@
           TG.marcar(devol, null);
           save({ fechaDevolucion: "" });
         }
+
+        actualizarCobro();
       };
 
       cabecera.alCambiar();
@@ -117,6 +158,16 @@
           TG.validarCampo(devol);
         }
       });
+
+      /* El total se recalcula solo al cambiar fechas o la casilla (la sesion ya guardo el valor) */
+      [recojo, devol].forEach((el) => {
+        el.addEventListener("change", actualizarCobro);
+        el.addEventListener("input", actualizarCobro);
+      });
+
+      if (dosDias) dosDias.addEventListener("change", actualizarCobro);
+
+      actualizarCobro();
 
       const bloquear = (b) =>
         datos.forEach((el) => {

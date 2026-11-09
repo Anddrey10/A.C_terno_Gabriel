@@ -35,6 +35,8 @@ class EmpleadoServiceImplTest {
     private Empleado empleado(String codigo, String usuario) {
         Empleado e = new Empleado();
         e.setCodigo(codigo);
+        e.setNombre("Luis");
+        e.setApellido("Salazar");
         e.setUsuario(usuario);
         e.setContrasena("clave123");
         e.setEstado("Activo");

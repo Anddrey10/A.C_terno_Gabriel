@@ -48,7 +48,9 @@
             tipo: esAlquiler ? "Alquiler" : "Venta",
             cliente: { id: s.clienteId },
             prenda: { id: s.prendaId },
+            fechaRecojo: esAlquiler ? s.fechaRecojo : null,
             fechaDevolucion: esAlquiler ? s.fechaDevolucion : null,
+            cobrarDosDiasComoUno: esAlquiler && Boolean(s.cobrarDosDias),
             monto: sesion.precioFinal(),
             empleado: u ? u.nombre : "",
             metodoPago: s.metodo || "Efectivo",
@@ -163,18 +165,11 @@
           btn.addEventListener("click", () => window.print()),
         );
 
-      /* Pide calificar una sola vez por boleta */
-      if (read().calificadoBoleta !== boleta.id) {
-        await TG.calificarObligatorio(boleta.cliente);
-        save({ calificadoBoleta: boleta.id });
-      }
-
       const finalizado = read();
 
       sesion.reemplazar({
         boletaId: boleta.id,
         operacion: finalizado.operacion || sesion.operacion(),
-        calificadoBoleta: boleta.id,
       });
     }
   }

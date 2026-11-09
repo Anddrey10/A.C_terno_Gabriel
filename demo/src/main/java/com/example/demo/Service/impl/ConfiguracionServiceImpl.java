@@ -19,6 +19,8 @@ public class ConfiguracionServiceImpl implements ConfiguracionService {
 
     private static final Logger LOG = LoggerFactory.getLogger(ConfiguracionServiceImpl.class);
 
+    private static final java.util.Set<String> CLAVES = java.util.Set.of("penalidadDemora", "penalidadMalEstado");
+
     private final ConfiguracionDao dao;
     private final EmpleadoRepository empleados;
 
@@ -41,8 +43,13 @@ public class ConfiguracionServiceImpl implements ConfiguracionService {
     @Override
     @Transactional
     public Configuracion cambiar(String clave, Object valorRecibido, Object modificadoPor) {
-        Configuracion c = dao.buscarPorClave(clave)
-            .orElseThrow(() -> new IllegalArgumentException("No existe la configuración " + clave));
+        /* Con la base vacía la penalidad aún no existe: el administrador la crea la primera vez que la define */
+        Preconditions.checkArgument(CLAVES.contains(clave), "No existe la configuración " + clave);
+        Configuracion c = dao.buscarPorClave(clave).orElseGet(() -> {
+            Configuracion nueva = new Configuracion();
+            nueva.setClave(clave);
+            return nueva;
+        });
         Double valor = Doubles.tryParse(String.valueOf(valorRecibido));
         Preconditions.checkArgument(valor != null, "El monto debe ser un número");
         Preconditions.checkArgument(valor > 0, "El monto debe ser mayor a 0");

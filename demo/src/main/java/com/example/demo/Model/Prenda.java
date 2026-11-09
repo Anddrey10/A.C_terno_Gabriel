@@ -19,6 +19,7 @@ public class Prenda extends Base {
     private String codigo;
 
     @NotBlank(message = "El diseño es obligatorio")
+    @Size(max = 255, message = "El diseño no debe superar 255 caracteres")
     private String diseno;
 
     @NotBlank(message = "El tipo es obligatorio")
@@ -26,6 +27,7 @@ public class Prenda extends Base {
     private String tipo;
 
     @NotBlank(message = "La talla es obligatoria")
+    @Size(max = 20, message = "La talla no debe superar 20 caracteres")
     private String talla;
 
     @NotBlank(message = "El estado es obligatorio")
@@ -42,19 +44,24 @@ public class Prenda extends Base {
     private Double precioAlquiler;
 
     /* Atributos que usan los filtros del catálogo (los define el administrador) */
+    @Size(max = 255, message = "El color no debe superar 255 caracteres")
     private String color;
 
     /* Niños | Jóvenes | Adultos */
+    @Pattern(regexp = "Niños|Jóvenes|Adultos", message = "La categoría debe ser Niños, Jóvenes o Adultos")
     private String categoria;
 
+    @Size(max = 255, message = "El estilo no debe superar 255 caracteres")
     private String estilo;
 
+    @Size(max = 255, message = "El componente no debe superar 255 caracteres")
     private String componente;
 
     /* El administrador puede dar de baja una prenda sin borrarla: deja de verse en los catálogos */
     private boolean suspendida = false;
 
     /* Foto de la prenda (data URL reducida desde el navegador) */
+    @Size(max = 5_000_000, message = "La imagen de la prenda es demasiado pesada")
     @Column(columnDefinition = "LONGTEXT")
     private String imagen;
 

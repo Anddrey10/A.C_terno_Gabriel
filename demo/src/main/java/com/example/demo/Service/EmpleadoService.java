@@ -20,6 +20,9 @@ public interface EmpleadoService {
     /** Genera una contraseña temporal, la guarda cifrada y la devuelve en texto plano una sola vez. */
     String restablecerContrasena(Long id);
 
+    /** El administrador escribe una contraseña nueva para el empleado (se guarda cifrada). */
+    void cambiarContrasena(Long id, String nueva);
+
     void eliminar(Long id);
 
     /** Cifra las contraseñas que todavía estén en texto plano (bases de datos antiguas). @return cuántas se cifraron */

@@ -4,7 +4,6 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -18,8 +17,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import com.example.demo.Model.*;
-import com.example.demo.Repository.*;
+import com.example.demo.Model.Empleado;
 import com.example.demo.Service.EmpleadoService;
 import jakarta.persistence.EntityManagerFactory;
 import jakarta.persistence.metamodel.Attribute;
@@ -30,60 +28,63 @@ import jakarta.persistence.metamodel.EntityType;
  *  1) Repara el esquema de una base MySQL antigua (columnas viejas NOT NULL que ya no existen en las entidades
  *     y columnas demasiado cortas). Esto evita errores como "Field 'x' doesn't have a default value" o
  *     "Data too long for column" al guardar tickets, boletas o prendas con foto.
- *  2) Conserva los datos existentes. Solo carga empleados, clientes y prendas de ejemplo si sus
- *     respectivas tablas están vacías. El borrado completo requiere activar explícitamente
- *     terno.reiniciar-datos=true en application.properties.
+ *  2) Cifra con BCrypt las contraseñas de empleados que estén en texto plano.
+ *
+ * El sistema arranca con la base de datos VACÍA: no se carga ningún dato de ejemplo. El único registro inicial es
+ * la cuenta del administrador, que se guarda en la tabla Empleado al arrancar si la tabla está vacía (también hay un
+ * script equivalente en demo/database/crear_administrador.sql); desde ahí el administrador agrega empleados, clientes, prendas, penalidades y métodos de pago.
+ * El borrado completo requiere activar explícitamente terno.reiniciar-datos=true en application.properties
+ * (úsalo una sola vez para limpiar una base antigua y vuelve a ponerlo en false).
  */
 @Configuration
 public class DatosIniciales {
 
     private static final Logger LOG = LoggerFactory.getLogger(DatosIniciales.class);
-    private static final String MARCA_REINICIO = "datosReiniciados";
 
     @Value("${terno.reiniciar-datos:false}")
     private boolean forzarReinicio;
 
     @Bean
-    CommandLineRunner cargar(DataSource ds, EntityManagerFactory emf, EmpleadoRepository emp, PrendaRepository pre,
-                             ClienteRepository cli, ConfiguracionRepository cfg, EmpleadoService empleados) {
+    CommandLineRunner cargar(DataSource ds, EntityManagerFactory emf, EmpleadoService empleados) {
         return args -> {
             repararEsquema(ds, emf);
 
-            /*
-             * IMPORTANTE: el arranque normal nunca borra datos existentes. Antes se ejecutaba un
-             * TRUNCATE en la primera ejecución de esta versión, lo que podía eliminar ventas,
-             * clientes y boletas reales. El reinicio destructivo solo se permite si el operador
-             * lo activa explícitamente con terno.reiniciar-datos=true.
-             */
+            /* El arranque normal nunca borra datos. El reinicio destructivo solo se permite si el operador
+               lo activa explícitamente con terno.reiniciar-datos=true. */
             if (forzarReinicio) {
-                LOG.warn("Se solicitó explícitamente terno.reiniciar-datos=true; se reiniciarán los datos.");
+                LOG.warn("Se solicitó explícitamente terno.reiniciar-datos=true; se vaciarán todas las tablas.");
                 borrarTodo(ds);
-                cfg.save(configuracion(MARCA_REINICIO, 1.0));
-            } else if (cfg.findByClave(MARCA_REINICIO).isEmpty()) {
-                cfg.save(configuracion(MARCA_REINICIO, 1.0));
             }
 
-            if (emp.count() == 0) {
-                emp.save(empleado("E001", "Carlos Alberto Ríos Mendoza", "empleado", "1234", "Empleado", "Ventas", "carlos.rios@gmail.com", "954336021"));
-                emp.save(empleado("E002", "Ana Lucía Flores Paredes", "admin", "admin", "Administrador", "Administración", "ana.flores@gmail.com", "961775308"));
-            }
-            /* Seguridad: las contraseñas sembradas o antiguas en texto plano se guardan cifradas (BCrypt) */
+            /* Si la tabla de empleados está vacía, se inserta en la base la cuenta del administrador */
+            crearAdministradorInicial(empleados);
+
+            /* Seguridad: las contraseñas cargadas desde el script SQL (texto plano) se guardan cifradas (BCrypt) */
             empleados.cifrarContrasenasPendientes();
-            if (cli.count() == 0) {
-                cli.save(cliente("46281573", "Luis Fernando", "Quispe Huamán", "987215634", "luis.quispe@gmail.com", "Av. Larco 1125"));
-                cli.save(cliente("71839246", "María Fernanda", "Torres Castillo", "963502187", "maria.torres@gmail.com", "Jr. Pizarro 480"));
-                cli.save(cliente("43917528", "Jorge Luis", "Paredes Salazar", "945118362", "jorge.paredes@gmail.com", "Av. España 1240"));
-            }
-            if (pre.count() == 0) {
-                pre.save(prenda("TRN-001", "Terno Slim Fit Azul Marino", "Nuevo", "M", 420.0, 95.0, "Azul Marino", "Adultos", "Moderno Slim"));
-                pre.save(prenda("TRN-002", "Terno Clásico Negro de Lana", "Nuevo", "L", 480.0, 110.0, "Negro", "Adultos", "Clásico"));
-                pre.save(prenda("TRN-003", "Terno Príncipe de Gales Gris", "Seminuevo", "M", 360.0, 80.0, "Gris Perla", "Adultos", "Ejecutivo"));
-                pre.save(prenda("TRN-004", "Terno Juvenil Gris Oxford", "Nuevo", "S", 320.0, 70.0, "Plomo / Oxford", "Jóvenes", "Moderno Slim"));
-                pre.save(prenda("SMK-001", "Smoking Negro Solapa de Raso", "Nuevo", "L", 650.0, 150.0, "Negro", "Adultos", "Smoking"));
-            }
-            if (cfg.findByClave("penalidadDemora").isEmpty()) cfg.save(configuracion("penalidadDemora", 10.0));
-            if (cfg.findByClave("penalidadMalEstado").isEmpty()) cfg.save(configuracion("penalidadMalEstado", 50.0));
         };
+    }
+
+    /* ---------- Administrador inicial ---------- */
+
+    /* Solo cuando NO hay ningún empleado: guarda en la tabla Empleado al administrador (contraseña cifrada con BCrypt).
+       Si ya existe cualquier empleado no hace nada, así que borrar o cambiar este usuario después no lo vuelve a crear. */
+    private void crearAdministradorInicial(EmpleadoService empleados) {
+        try {
+            if (!empleados.listar().isEmpty()) return;
+            Empleado admin = new Empleado();
+            admin.setNombre("Jefferson");
+            admin.setApellido("Encarnacion");
+            admin.setUsuario("admin");
+            admin.setContrasena("Admin1pru");
+            admin.setCorreo("jeffersonadmin1@gmail.com");
+            admin.setTelefono("974673845");
+            admin.setArea("Administración");
+            admin.setRol("Administrador");
+            empleados.crear(admin);
+            LOG.info("Se creó la cuenta del administrador en la tabla Empleado.");
+        } catch (RuntimeException e) {
+            LOG.error("No se pudo crear el administrador inicial: {}", e.getMessage());
+        }
     }
 
     /* ---------- Esquema ---------- */
@@ -162,36 +163,5 @@ public class DatosIniciales {
                 }
             }
         }
-    }
-
-    /* ---------- Datos de ejemplo ---------- */
-
-    private Configuracion configuracion(String clave, double valor) {
-        Configuracion c = new Configuracion();
-        c.setClave(clave); c.setValor(valor); c.setModificadoPor("Administrador");
-        return c;
-    }
-
-    private Empleado empleado(String codigo, String nombre, String usuario, String clave, String rol, String area, String correo, String telefono) {
-        Empleado e = new Empleado();
-        e.setCodigo(codigo); e.setNombre(nombre); e.setUsuario(usuario); e.setContrasena(clave); e.setRol(rol);
-        e.setArea(area); e.setCorreo(correo); e.setTelefono(telefono); e.setEstado("Activo"); e.setDesde(LocalDate.now());
-        return e;
-    }
-
-    private Cliente cliente(String dni, String nombres, String apellidos, String celular, String correo, String direccion) {
-        Cliente c = new Cliente();
-        c.setDni(dni); c.setNombres(nombres); c.setApellidos(apellidos); c.setCelular(celular); c.setCorreo(correo);
-        c.setDireccion(direccion); c.setDistrito("Trujillo"); c.setDepartamento("La Libertad");
-        return c;
-    }
-
-    private Prenda prenda(String codigo, String diseno, String tipo, String talla, double venta, double alquiler,
-                          String color, String categoria, String estilo) {
-        Prenda p = new Prenda();
-        p.setCodigo(codigo); p.setDiseno(diseno); p.setTipo(tipo); p.setTalla(talla);
-        p.setPrecioVenta(venta); p.setPrecioAlquiler(alquiler);
-        p.setColor(color); p.setCategoria(categoria); p.setEstilo(estilo); p.setComponente("Terno completo");
-        return p;
     }
 }

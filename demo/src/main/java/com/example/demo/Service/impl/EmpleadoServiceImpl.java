@@ -33,7 +33,12 @@ public class EmpleadoServiceImpl implements EmpleadoService {
     @Override
     @Transactional
     public Empleado crear(Empleado nuevo) {
+        Preconditions.checkArgument(nuevo.getApellido() != null && !nuevo.getApellido().isBlank(), "El apellido es obligatorio");
+        Preconditions.checkArgument(nuevo.getContrasena() != null && !nuevo.getContrasena().isBlank(), "La contraseña es obligatoria");
+        nuevo.setNombre(nuevo.getNombre().trim());
+        nuevo.setApellido(nuevo.getApellido().trim());
         Preconditions.checkArgument(dao.buscarPorUsuario(nuevo.getUsuario()).isEmpty(), "Ya existe un empleado con ese usuario");
+        Preconditions.checkArgument(dao.buscarPorCorreo(nuevo.getCorreo()).isEmpty(), "Ya existe un empleado con ese correo");
         nuevo.setCodigo(siguienteCodigo());
         nuevo.setEstado("Activo");
         nuevo.setContrasena(contrasenas.cifrar(nuevo.getContrasena()));
@@ -46,10 +51,24 @@ public class EmpleadoServiceImpl implements EmpleadoService {
     @Transactional
     public Empleado actualizar(Long id, Empleado datos) {
         Empleado actual = dao.buscarPorId(id).orElseThrow(() -> new IllegalArgumentException(NO_EXISTE));
-        datos.setId(id);
-        datos.setCodigo(actual.getCodigo());
-        datos.setContrasena(contrasenas.cifrar(datos.getContrasena()));
-        return dao.guardar(datos);
+        Preconditions.checkArgument(datos.getApellido() != null && !datos.getApellido().isBlank(), "El apellido es obligatorio");
+        dao.buscarPorUsuario(datos.getUsuario()).ifPresent(otro ->
+            Preconditions.checkArgument(otro.getId().equals(id), "Ya existe un empleado con ese usuario"));
+        dao.buscarPorCorreo(datos.getCorreo()).ifPresent(otro ->
+            Preconditions.checkArgument(otro.getId().equals(id), "Ya existe un empleado con ese correo"));
+        /* Solo se cambian los datos editables: código, estado y fecha de ingreso los maneja el sistema */
+        actual.setNombre(datos.getNombre().trim());
+        actual.setApellido(datos.getApellido().trim());
+        actual.setUsuario(datos.getUsuario());
+        actual.setCorreo(datos.getCorreo());
+        actual.setTelefono(datos.getTelefono());
+        actual.setArea(datos.getArea());
+        actual.setRol(datos.getRol());
+        /* La contraseña solo cambia si se escribió una nueva; si no, se conserva la cifrada que ya tenía */
+        if (datos.getContrasena() != null && !datos.getContrasena().isBlank())
+            actual.setContrasena(contrasenas.cifrar(datos.getContrasena()));
+        LOG.info("Empleado {} editado", actual.getCodigo());
+        return dao.guardar(actual);
     }
 
     @Override
@@ -79,6 +98,16 @@ public class EmpleadoServiceImpl implements EmpleadoService {
         dao.guardar(e);
         LOG.info("Contraseña restablecida para el empleado {}", e.getCodigo());
         return temporal;
+    }
+
+    @Override
+    @Transactional
+    public void cambiarContrasena(Long id, String nueva) {
+        Empleado e = dao.buscarPorId(id).orElseThrow(() -> new IllegalArgumentException(NO_EXISTE));
+        Preconditions.checkArgument(nueva != null && nueva.length() >= 4, "La contraseña debe tener al menos 4 caracteres");
+        e.setContrasena(contrasenas.cifrar(nueva));
+        dao.guardar(e);
+        LOG.info("Contraseña cambiada para el empleado {}", e.getCodigo());
     }
 
     @Override

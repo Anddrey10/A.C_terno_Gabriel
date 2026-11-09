@@ -193,4 +193,61 @@ class BoletaServiceImplTest {
         assertThatThrownBy(() -> servicio.devolver(3L, "Disponible"))
             .hasMessage("Estado de prenda no válido para una devolución");
     }
+
+    private Boleta alquilerDeDias(int dias, boolean dosDiasComoUno) {
+        Boleta alquiler = pedido("Alquiler");
+        alquiler.setFechaRecojo(LocalDate.now());
+        alquiler.setFechaDevolucion(LocalDate.now().plusDays(dias));
+        alquiler.setCobrarDosDiasComoUno(dosDiasComoUno);
+        return alquiler;
+    }
+
+    private void prepararAlquiler() {
+        when(prendas.buscarPorId(5L)).thenReturn(Optional.of(prenda("Disponible")));
+        when(clientes.buscarPorId(1L)).thenReturn(Optional.of(cliente()));
+        simularGuardadoDeBoletas();
+    }
+
+    @Test
+    void elAlquilerSeCobraPorDia() {
+        prepararAlquiler();
+
+        Boleta emitida = servicio.emitir(alquilerDeDias(3, false));
+
+        assertThat(emitida.getMonto()).isEqualTo(285.0);
+    }
+
+    @Test
+    void conLaOpcionMarcadaLosDiasUnoYDosSeCobranComoUno() {
+        prepararAlquiler();
+
+        Boleta emitida = servicio.emitir(alquilerDeDias(3, true));
+
+        assertThat(emitida.getMonto()).isEqualTo(190.0);
+    }
+
+    @Test
+    void elCalculoDelMontoDelAlquilerEsAutomatico() {
+        LocalDate hoy = LocalDate.now();
+
+        assertThat(BoletaServiceImpl.montoAlquiler(50, hoy, hoy.plusDays(1), false)).isEqualTo(50.0);
+        assertThat(BoletaServiceImpl.montoAlquiler(50, hoy, hoy.plusDays(2), false)).isEqualTo(100.0);
+        assertThat(BoletaServiceImpl.montoAlquiler(50, hoy, hoy.plusDays(2), true)).isEqualTo(50.0);
+        assertThat(BoletaServiceImpl.montoAlquiler(50, hoy, hoy.plusDays(3), false)).isEqualTo(150.0);
+        assertThat(BoletaServiceImpl.montoAlquiler(50, hoy, hoy.plusDays(3), true)).isEqualTo(100.0);
+        assertThat(BoletaServiceImpl.montoAlquiler(50, hoy, hoy.plusDays(1), true)).isEqualTo(50.0);
+        assertThat(BoletaServiceImpl.montoAlquiler(50, hoy, hoy.plusDays(5), true)).isEqualTo(200.0);
+    }
+
+    @Test
+    void laDevolucionNoPuedeSerAnteriorALaFechaDeRecojo() {
+        Boleta alquiler = pedido("Alquiler");
+        alquiler.setFechaRecojo(LocalDate.now().plusDays(3));
+        alquiler.setFechaDevolucion(LocalDate.now().plusDays(1));
+        when(prendas.buscarPorId(5L)).thenReturn(Optional.of(prenda("Disponible")));
+        when(clientes.buscarPorId(1L)).thenReturn(Optional.of(cliente()));
+
+        assertThatThrownBy(() -> servicio.emitir(alquiler))
+            .hasMessage("La fecha de devolución no puede ser anterior a la de recojo");
+    }
 }

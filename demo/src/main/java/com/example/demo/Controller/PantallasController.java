@@ -6,6 +6,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 @Controller
 public class PantallasController {
     @GetMapping({"/", "/login"}) public String login() { return "login"; }
+    @GetMapping("/acceso-denegado") public String accesoDenegado() { return "acceso-denegado"; }
 
     @GetMapping("/admin/inicio") public String adminInicio() { return "admin/inicio"; }
     @GetMapping("/admin/empleados") public String adminEmpleados() { return "admin/empleados"; }
@@ -17,6 +18,7 @@ public class PantallasController {
     @GetMapping("/admin/prendas") public String adminPrendas() { return "admin/prendas"; }
     @GetMapping("/admin/catalogo") public String adminCatalogo() { return "admin/catalogo"; }
     @GetMapping("/admin/boletas") public String adminBoletas() { return "admin/boletas"; }
+    @GetMapping("/admin/metodos-pago") public String adminMetodosPago() { return "admin/metodos-pago"; }
 
     @GetMapping("/empleado/inicio") public String empleadoInicio() { return "empleado/inicio"; }
     @GetMapping("/empleado/comprar-alquilar") public String comprarAlquilar() { return "empleado/comprar-alquilar"; }

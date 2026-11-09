@@ -14,4 +14,7 @@ public interface EmpleadoDao extends GenericDao<Empleado> {
 
     /** @return empleado con ese usuario (sin distinguir mayúsculas) */
     Optional<Empleado> buscarPorUsuario(String usuario);
+
+    /** @return empleado con ese correo (sin distinguir mayúsculas) */
+    Optional<Empleado> buscarPorCorreo(String correo);
 }

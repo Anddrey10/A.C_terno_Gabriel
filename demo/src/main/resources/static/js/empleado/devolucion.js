@@ -6,7 +6,7 @@ document.addEventListener("DOMContentLoaded", () =>
     const inputBusqueda = $("inputBusqueda"),
       detalle = $("detalleResultado"),
       noEncontrado = $("mensajeNoEncontrado");
-    let config = { demora: 10, malEstado: 50 },
+    let config = { demora: 0, malEstado: 0 },
       boleta = null,
       estadoActual = "bueno",
       dias = 0,
@@ -14,8 +14,9 @@ document.addEventListener("DOMContentLoaded", () =>
     try {
       const c = await TG.configuracion();
       config = {
-        demora: c.penalidadDemora.valor,
-        malEstado: c.penalidadMalEstado.valor,
+        /* Hasta que el administrador defina las penalidades, el monto es 0 */
+        demora: c.penalidadDemora?.valor ?? 0,
+        malEstado: c.penalidadMalEstado?.valor ?? 0,
       };
     } catch (e) {
       TG.toast(e.message);
@@ -26,20 +27,8 @@ document.addEventListener("DOMContentLoaded", () =>
     if (u && $("bEmpleado")) $("bEmpleado").textContent = u.nombre;
     if ($("bFecha")) $("bFecha").textContent = TG.fechaHora();
 
-    inputBusqueda?.addEventListener("input", (e) => {
-      const v = e.target.value;
-      if (!v) return;
-      if (/^[a-zA-Z]/.test(v)) {
-        const prefix = v.toUpperCase().startsWith("D") ? "D" : "B";
-        const n = v.slice(1).replace(/\D/g, "").slice(0, 7);
-        e.target.value =
-          prefix + (n.length > 3 ? n.slice(0, 3) + "-" + n.slice(3) : n);
-        e.target.setAttribute("maxlength", "9");
-      } else {
-        e.target.value = v.replace(/\D/g, "").slice(0, 8);
-        e.target.setAttribute("maxlength", "8");
-      }
-    });
+    /* Solo deja escribir un DNI (8 números) o un código de boleta (B001-0083) */
+    TG.filtroBusqueda(inputBusqueda, "B");
 
     const totales = () => {
       const sub = dias * config.demora,
@@ -88,8 +77,8 @@ document.addEventListener("DOMContentLoaded", () =>
           boleta = boletas
             .filter((b) => b.cliente.dni === val)
             .sort((a, b) => b.id - a.id)[0];
-        else if (/^[BD]\d{3}-\d{1,4}$/i.test(val)) {
-          /* B001-5 → B001-0005; la D es solo la forma en que el panel admin muestra las devoluciones */
+        else if (/^B\d{3}-\d{1,4}$/i.test(val)) {
+          /* B001-5 → B001-0005 (así se guardan los números de boleta) */
           const numero =
             "B" + val.slice(1, 4) + "-" + val.split("-")[1].padStart(4, "0");
           boleta = boletas.find(

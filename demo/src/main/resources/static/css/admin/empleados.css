@@ -234,13 +234,19 @@
   background-color: #d93838;
 }
 
+/* Editar va al costado de Suspender (o de Restablecer); "Restablecer contraseña" ocupa el ancho de abajo,
+   así la columna no se ensancha */
 .page-admin-empleados .acciones-fila {
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
   align-items: stretch;
   justify-content: center;
   gap: 3px;
   width: 100%;
+}
+
+.page-admin-empleados .acciones-fila [data-clave] {
+  grid-column: 1 / -1;
 }
 
 .page-admin-empleados .btn-mini {

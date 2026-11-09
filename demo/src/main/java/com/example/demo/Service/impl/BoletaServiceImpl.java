@@ -1,6 +1,7 @@
 package com.example.demo.Service.impl;
 
 import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -74,14 +75,29 @@ public class BoletaServiceImpl implements BoletaService {
             .orElseThrow(() -> new IllegalArgumentException("El cliente no existe"));
         boolean alquiler = "Alquiler".equals(nueva.getTipo());
         Preconditions.checkArgument(!alquiler || nueva.getFechaDevolucion() != null, "Debe indicar la fecha de devolución del alquiler");
-        if (!alquiler) nueva.setFechaDevolucion(null);
+        if (!alquiler) {
+            nueva.setFechaDevolucion(null);
+            nueva.setFechaRecojo(null);
+            nueva.setCobrarDosDiasComoUno(Boolean.FALSE);
+        } else {
+            Preconditions.checkArgument(nueva.getFechaRecojo() == null || !nueva.getFechaRecojo().isBefore(LocalDate.now()),
+                "La fecha de recojo no puede ser pasada");
+            Preconditions.checkArgument(nueva.getFechaRecojo() == null || !nueva.getFechaDevolucion().isBefore(nueva.getFechaRecojo()),
+                "La fecha de devolución no puede ser anterior a la de recojo");
+            nueva.setCobrarDosDiasComoUno(Boolean.TRUE.equals(nueva.getCobrarDosDiasComoUno()));
+        }
         Preconditions.checkArgument(!prenda.isSuspendida(), "La prenda está suspendida");
         Preconditions.checkArgument("Disponible".equals(prenda.getEstado()), "La prenda no está disponible");
         Preconditions.checkArgument(!alquiler || !cliente.isAlquilerBloqueado(), "El cliente tiene el alquiler bloqueado");
 
         nueva.setCliente(cliente);
         nueva.setPrenda(prenda);
-        nueva.setMonto("Venta".equals(nueva.getTipo()) ? prenda.getPrecioVenta() : prenda.getPrecioAlquiler());
+        Double monto;
+        if ("Venta".equals(nueva.getTipo())) monto = prenda.getPrecioVenta();
+        else if (alquiler) monto = montoAlquiler(prenda.getPrecioAlquiler(), nueva.getFechaRecojo(), nueva.getFechaDevolucion(),
+            Boolean.TRUE.equals(nueva.getCobrarDosDiasComoUno()));
+        else monto = prenda.getPrecioAlquiler();
+        nueva.setMonto(monto);
 
         if (alquiler) prenda.setEstado("Alquilado");
         if ("Reserva".equals(nueva.getTipo())) prenda.setEstado("Reservado");
@@ -94,6 +110,23 @@ public class BoletaServiceImpl implements BoletaService {
         guardada = boletas.guardar(guardada);
         LOG.info("Boleta {} emitida ({})", guardada.getNumero(), guardada.getTipo());
         return guardada;
+    }
+
+    /** Días del alquiler (mínimo 1): de la fecha de recojo (hoy si no se indica) a la de devolución. */
+    public static long diasAlquiler(LocalDate recojo, LocalDate devolucion) {
+        LocalDate desde = recojo != null ? recojo : LocalDate.now();
+        return Math.max(1, ChronoUnit.DAYS.between(desde, devolucion));
+    }
+
+    /** Días que se cobran: con la opción marcada, los días 1 y 2 se cobran como un solo día. */
+    public static long diasCobrados(long dias, boolean dosDiasComoUno) {
+        return dosDiasComoUno ? Math.max(1, dias - 1) : dias;
+    }
+
+    /** Monto del alquiler: precio por día × días cobrados (S/ 50: 3 días = 150, o 100 con la opción marcada). */
+    public static double montoAlquiler(double precioPorDia, LocalDate recojo, LocalDate devolucion, boolean dosDiasComoUno) {
+        long cobrados = diasCobrados(diasAlquiler(recojo, devolucion), dosDiasComoUno);
+        return Math.round(precioPorDia * cobrados * 100.0) / 100.0;
     }
 
     private Boleta emitirConfeccion(Boleta nueva) {
